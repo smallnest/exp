@@ -17,7 +17,7 @@ type bench struct {
 }
 
 func benchMap(b *testing.B, bench bench) {
-	for _, m := range [...]mapInterface{&DeepCopyMap{}, &RWMutexMap{}, &SyncMap[int, int]{}, &SyncMap[int, int]{}} {
+	for _, m := range [...]mapInterface{&DeepCopyMap{}, &RWMutexMap{}, &SyncMap[int, int]{}, &Map[int, int]{}} {
 		b.Run(fmt.Sprintf("%T", m), func(b *testing.B) {
 			m = reflect.New(reflect.TypeOf(m).Elem()).Interface().(mapInterface)
 			if bench.setup != nil {

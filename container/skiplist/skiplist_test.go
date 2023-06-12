@@ -7,9 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dolthub/maphash"
 	"github.com/stretchr/testify/assert"
-	//"github.com/pkg/profile"
 )
 
 const (
@@ -54,15 +52,15 @@ func timeTrack(start time.Time, n int, name string) {
 }
 
 func TestInsertAndFind(t *testing.T) {
-	var list *SkipList[int]
+	var list *SkipList[int, int]
 
-	var listPointer *SkipList[int]
-	listPointer.Insert(0)
+	var listPointer *SkipList[int, int]
+	listPointer.Insert(0, 0)
 	if _, ok := listPointer.Find(0); ok {
 		assert.Fail(t, "listPointer should be nil")
 	}
 
-	list = New[int]()
+	list = New[int, int]()
 
 	if _, ok := list.Find(0); ok {
 		assert.Fail(t, "list should be empty")
@@ -73,7 +71,7 @@ func TestInsertAndFind(t *testing.T) {
 
 	// Test at the beginning of the list.
 	for i := 0; i < maxN; i++ {
-		list.Insert(maxN - i)
+		list.Insert(maxN-i, maxN-i)
 	}
 	for i := 0; i < maxN; i++ {
 		if _, ok := list.Find(maxN - i); !ok {
@@ -81,10 +79,10 @@ func TestInsertAndFind(t *testing.T) {
 		}
 	}
 
-	list = New[int]()
+	list = New[int, int]()
 	// Test at the end of the list.
 	for i := 0; i < maxN; i++ {
-		list.Insert(i)
+		list.Insert(i, i)
 	}
 	for i := 0; i < maxN; i++ {
 		if _, ok := list.Find(i); !ok {
@@ -92,11 +90,11 @@ func TestInsertAndFind(t *testing.T) {
 		}
 	}
 
-	list = New[int]()
+	list = New[int, int]()
 	// Test at random positions in the list.
 	rList := rand.Perm(maxN)
 	for _, e := range rList {
-		list.Insert(e)
+		list.Insert(e, e)
 	}
 	for _, e := range rList {
 		if _, ok := list.Find(e); !ok {
@@ -108,12 +106,12 @@ func TestInsertAndFind(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 
-	var list *SkipList[int]
+	var list *SkipList[int, int]
 
 	// Delete on empty list
 	list.Delete(0)
 
-	list = New[int]()
+	list = New[int, int]()
 
 	list.Delete(0)
 	if !list.IsEmpty() {
@@ -122,7 +120,7 @@ func TestDelete(t *testing.T) {
 
 	// Delete elements at the beginning of the list.
 	for i := 0; i < maxN; i++ {
-		list.Insert(i)
+		list.Insert(i, i)
 	}
 	for i := 0; i < maxN; i++ {
 		list.Delete(i)
@@ -131,10 +129,10 @@ func TestDelete(t *testing.T) {
 		assert.Fail(t, "list should be empty")
 	}
 
-	list = New[int]()
+	list = New[int, int]()
 	// Delete elements at the end of the list.
 	for i := 0; i < maxN; i++ {
-		list.Insert(i)
+		list.Insert(i, i)
 	}
 	for i := 0; i < maxN; i++ {
 		list.Delete(maxN - i - 1)
@@ -143,11 +141,11 @@ func TestDelete(t *testing.T) {
 		assert.Fail(t, "list should be empty")
 	}
 
-	list = New[int]()
+	list = New[int, int]()
 	// Delete elements at random positions in the list.
 	rList := rand.Perm(maxN)
 	for _, e := range rList {
-		list.Insert(e)
+		list.Insert(e, e)
 	}
 	for _, e := range rList {
 		list.Delete(e)
@@ -158,10 +156,10 @@ func TestDelete(t *testing.T) {
 }
 
 func TestPrev(t *testing.T) {
-	list := New[int]()
+	list := New[int, int]()
 
 	for i := 0; i < maxN; i++ {
-		list.Insert(i)
+		list.Insert(i, i)
 	}
 
 	smallest := list.GetSmallestNode()
@@ -188,10 +186,10 @@ func TestPrev(t *testing.T) {
 }
 
 func TestNext(t *testing.T) {
-	list := New[int]()
+	list := New[int, int]()
 
 	for i := 0; i < maxN; i++ {
-		list.Insert(i)
+		list.Insert(i, i)
 	}
 
 	smallest := list.GetSmallestNode()
@@ -218,50 +216,45 @@ func TestNext(t *testing.T) {
 }
 
 func TestChangeValue(t *testing.T) {
-
-	var a = maphash.NewHasher[int]()
-
-	list := NewHashFunc(func(e ComplexElement) uint64 {
-		return a.Hash(e.E)
-	})
+	list := New[int, ComplexElement]()
 
 	for i := 0; i < maxN; i++ {
-		list.Insert(ComplexElement{i, strconv.Itoa(i)})
+		list.Insert(i, ComplexElement{i, strconv.Itoa(i)})
 	}
 
 	for i := 0; i < maxN; i++ {
 		// The key only looks at the int so the string doesn't matter here!
-		f1, ok := list.Find(ComplexElement{i, ""})
+		_, ok := list.Find(i)
 		if !ok {
 			assert.Fail(t, "could not find element")
 		}
-		ok = list.ChangeValue(f1.value, ComplexElement{i, "different value"})
+		ok = list.ChangeValue(i, ComplexElement{i, "different value"})
 		if !ok {
 			assert.Fail(t, "could not change value")
 		}
-		f2, ok := list.Find(ComplexElement{i, ""})
+		f2, ok := list.Find(i)
 		if !ok {
 			assert.Fail(t, "could not find element")
 		}
-		if f2.GetValue().S != "different value" {
-			assert.NotEqual(t, f2.GetValue().S, "different value")
+		if f2.S != "different value" {
+			assert.NotEqual(t, f2.S, "different value")
 		}
 	}
 }
 
 func TestGetNodeCount(t *testing.T) {
-	list := New[int]()
+	list := New[int, int]()
 
 	for i := 0; i < maxN; i++ {
-		list.Insert(i)
+		list.Insert(i, i)
 	}
 
 	assert.Equal(t, list.GetNodeCount(), maxN)
 }
 
 func TestInfiniteLoop(t *testing.T) {
-	list := New[int]()
-	list.Insert(1)
+	list := New[int, int]()
+	list.Insert(1, 1)
 
 	if _, ok := list.Find(2); ok {
 		assert.Fail(t, "list should not contain 2")

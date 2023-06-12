@@ -33,7 +33,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/dolthub/maphash"
+	"golang.org/x/exp/constraints"
 )
 
 const (
@@ -42,94 +42,58 @@ const (
 	maxLevel = 25
 )
 
-// Hasher is a function that calculates a hash for a given key.
-type Hasher[V comparable] interface {
-	Hash(key V) uint64
-}
+// Ordered is an interface for elements which can be ordered.
+type Ordered = constraints.Ordered
 
 // SkipListElement represents one actual Node in the skiplist structure.
 // It saves the actual element, pointers to the next nodes and a pointer to one previous node.
-type SkipListElement[V comparable] struct {
-	next  [maxLevel]*SkipListElement[V]
+type SkipListElement[K Ordered, V any] struct {
+	next  [maxLevel]*SkipListElement[K, V]
 	level int
 	value V
-	prev  *SkipListElement[V]
-}
-
-// key calculates the key for a given element.
-func getKey[V comparable](hasher Hasher[V], v V) uint64 {
-	return hasher.Hash(v)
+	key   K
+	prev  *SkipListElement[K, V]
 }
 
 // SkipList is the actual skiplist representation.
 // It saves all nodes accessible from the start and end and keeps track of element count, eps and levels.
-type SkipList[V comparable] struct {
-	startLevels  [maxLevel]*SkipListElement[V]
-	endLevels    [maxLevel]*SkipListElement[V]
+type SkipList[K Ordered, V any] struct {
+	startLevels  [maxLevel]*SkipListElement[K, V]
+	endLevels    [maxLevel]*SkipListElement[K, V]
 	maxNewLevel  int
 	maxLevel     int
 	elementCount int
 	eps          float64
-
-	hasher Hasher[V]
 }
 
 // NewSeed returns a new empty, initialized Skiplist.
 // Given a seed, a deterministic height/list behaviour can be achieved.
-func NewSeed[V comparable](seed int64) *SkipList[V] {
+func NewSeed[K Ordered, V any](seed int64) *SkipList[K, V] {
 	// Initialize random number generator.
 	rand.Seed(seed)
-	//fmt.Printf("SkipList seed: %v\n", seed)
 
-	hasher := maphash.NewHasher[V]()
-	list := &SkipList[V]{
-		startLevels:  [maxLevel]*SkipListElement[V]{},
-		endLevels:    [maxLevel]*SkipListElement[V]{},
+	list := &SkipList[K, V]{
+		startLevels:  [maxLevel]*SkipListElement[K, V]{},
+		endLevels:    [maxLevel]*SkipListElement[K, V]{},
 		maxNewLevel:  maxLevel,
 		maxLevel:     0,
 		elementCount: 0,
-		hasher:       &hasher,
 	}
 
 	return list
 }
 
-// NewHasher returns a new empty, initialized Skiplist.
-func NewHasher[V comparable](hasher Hasher[V]) *SkipList[V] {
-	t := New[V]()
-	t.hasher = hasher
-
-	return t
-}
-
-// NewHashWrapper returns a new empty, initialized Skiplist.
-type HashWrapper[V comparable] struct {
-	hashFunc func(key V) uint64
-}
-
-// Hash returns a new empty, initialized Skiplist.
-func (hw *HashWrapper[V]) Hash(key V) uint64 {
-	return hw.hashFunc(key)
-}
-
-// NewHashFunc returns a new empty, initialized Skiplist.
-func NewHashFunc[V comparable](hashFunc func(key V) uint64) *SkipList[V] {
-	hasher := &HashWrapper[V]{hashFunc}
-
-	return NewHasher[V](hasher)
-}
-
 // New returns a new empty, initialized Skiplist.
-func New[V comparable]() *SkipList[V] {
-	return NewSeed[V](time.Now().UnixNano())
+func New[K Ordered, V any]() *SkipList[K, V] {
+	return NewSeed[K, V](time.Now().UnixNano())
 }
 
 // IsEmpty checks, if the skiplist is empty.
-func (t *SkipList[V]) IsEmpty() bool {
+func (t *SkipList[K, V]) IsEmpty() bool {
 	return t.startLevels[0] == nil
 }
 
-func (t *SkipList[V]) generateLevel(maxLevel int) int {
+func (t *SkipList[K, V]) generateLevel(maxLevel int) int {
 	level := maxLevel - 1
 	// First we apply some mask which makes sure that we don't get a level
 	// above our desired level. Then we find the first set bit.
@@ -142,17 +106,17 @@ func (t *SkipList[V]) generateLevel(maxLevel int) int {
 	return level
 }
 
-func (t *SkipList[V]) findEntryIndex(key uint64, level int) int {
+func (t *SkipList[K, V]) findEntryIndex(key K, level int) int {
 	// Find good entry point so we don't accidentally skip half the list.
 	for i := t.maxLevel; i >= 0; i-- {
-		if t.startLevels[i] != nil && getKey(t.hasher, t.startLevels[i].value) <= key || i <= level {
+		if t.startLevels[i] != nil && t.startLevels[i].key <= key || i <= level {
 			return i
 		}
 	}
 	return 0
 }
 
-func (t *SkipList[V]) findExtended(key uint64, findGreaterOrEqual bool) (foundElem *SkipListElement[V], ok bool) {
+func (t *SkipList[K, V]) findExtended(key K, findGreaterOrEqual bool) (foundElem *SkipListElement[K, V], ok bool) {
 
 	foundElem = nil
 	ok = false
@@ -162,20 +126,20 @@ func (t *SkipList[V]) findExtended(key uint64, findGreaterOrEqual bool) (foundEl
 	}
 
 	index := t.findEntryIndex(key, 0)
-	var currentNode *SkipListElement[V]
+	var currentNode *SkipListElement[K, V]
 
 	currentNode = t.startLevels[index]
 	nextNode := currentNode
 
 	// In case, that our first element is already greater-or-equal!
-	if findGreaterOrEqual && getKey(t.hasher, currentNode.value) > key {
+	if findGreaterOrEqual && currentNode.key > key {
 		foundElem = currentNode
 		ok = true
 		return
 	}
 
 	for {
-		if getKey(t.hasher, currentNode.value) == key {
+		if currentNode.key == key {
 			foundElem = currentNode
 			ok = true
 			return
@@ -184,14 +148,14 @@ func (t *SkipList[V]) findExtended(key uint64, findGreaterOrEqual bool) (foundEl
 		nextNode = currentNode.next[index]
 
 		// Which direction are we continuing next time?
-		if nextNode != nil && getKey(t.hasher, nextNode.value) <= key {
+		if nextNode != nil && nextNode.key <= key {
 			// Go right
 			currentNode = nextNode
 		} else {
 			if index > 0 {
 
 				// Early exit
-				if currentNode.next[0] != nil && getKey(t.hasher, currentNode.next[0].value) == key {
+				if currentNode.next[0] != nil && currentNode.next[0].key == key {
 					foundElem = currentNode.next[0]
 					ok = true
 					return
@@ -214,26 +178,28 @@ func (t *SkipList[V]) findExtended(key uint64, findGreaterOrEqual bool) (foundEl
 // Find tries to find an element in the skiplist based on the key from the given ListElement.
 // elem can be used, if ok is true.
 // Find runs in approx. O(log(n))
-func (t *SkipList[V]) Find(e V) (elem *SkipListElement[V], ok bool) {
-
+func (t *SkipList[K, V]) Find(key K) (v V, ok bool) {
 	if t == nil {
 		return
 	}
 
-	elem, ok = t.findExtended(getKey(t.hasher, e), false)
+	if elem, ok := t.findExtended(key, false); ok {
+		return elem.value, true
+	}
+
 	return
 }
 
 // FindGreaterOrEqual finds the first element, that is greater or equal to the given ListElement e.
 // The comparison is done on the keys (So on ExtractKey()).
 // FindGreaterOrEqual runs in approx. O(log(n))
-func (t *SkipList[V]) FindGreaterOrEqual(e V) (elem *SkipListElement[V], ok bool) {
+func (t *SkipList[K, V]) FindGreaterOrEqual(key K) (elem *SkipListElement[K, V], ok bool) {
 
 	if t == nil {
 		return
 	}
 
-	elem, ok = t.findExtended(getKey(t.hasher, e), true)
+	elem, ok = t.findExtended(key, true)
 	return
 }
 
@@ -241,17 +207,15 @@ func (t *SkipList[V]) FindGreaterOrEqual(e V) (elem *SkipListElement[V], ok bool
 // If there are multiple entries with the same value, Delete will remove one of them
 // (Which one will change based on the actual skiplist layout)
 // Delete runs in approx. O(log(n))
-func (t *SkipList[V]) Delete(e V) {
+func (t *SkipList[K, V]) Delete(key K) {
 
 	if t == nil || t.IsEmpty() {
 		return
 	}
 
-	key := getKey(t.hasher, e)
-
 	index := t.findEntryIndex(key, 0)
 
-	var currentNode *SkipListElement[V]
+	var currentNode *SkipListElement[K, V]
 	nextNode := currentNode
 
 	for {
@@ -263,7 +227,7 @@ func (t *SkipList[V]) Delete(e V) {
 		}
 
 		// Found and remove!
-		if nextNode != nil && getKey(t.hasher, nextNode.value) == key {
+		if nextNode != nil && nextNode.key == key {
 
 			if currentNode != nil {
 				currentNode.next[index] = nextNode.next[index]
@@ -292,7 +256,7 @@ func (t *SkipList[V]) Delete(e V) {
 			nextNode.next[index] = nil
 		}
 
-		if nextNode != nil && getKey(t.hasher, nextNode.value) < key {
+		if nextNode != nil && nextNode.key < key {
 			// Go right
 			currentNode = nextNode
 		} else {
@@ -308,9 +272,13 @@ func (t *SkipList[V]) Delete(e V) {
 
 // Insert inserts the given ListElement into the skiplist.
 // Insert runs in approx. O(log(n))
-func (t *SkipList[V]) Insert(e V) {
-
+func (t *SkipList[K, V]) Insert(key K, e V) {
 	if t == nil {
+		return
+	}
+
+	if _, ok := t.findExtended(key, false); ok {
+		t.ChangeValue(key, e)
 		return
 	}
 
@@ -322,10 +290,11 @@ func (t *SkipList[V]) Insert(e V) {
 		t.maxLevel = level
 	}
 
-	elem := &SkipListElement[V]{
-		next:  [maxLevel]*SkipListElement[V]{},
+	elem := &SkipListElement[K, V]{
+		next:  [maxLevel]*SkipListElement[K, V]{},
 		level: level,
 		value: e,
+		key:   key,
 	}
 
 	t.elementCount++
@@ -333,10 +302,10 @@ func (t *SkipList[V]) Insert(e V) {
 	newFirst := true
 	newLast := true
 
-	elemKey := getKey(t.hasher, elem.value)
+	elemKey := key
 	if !t.IsEmpty() {
-		newFirst = elemKey < getKey(t.hasher, t.startLevels[0].value)
-		newLast = elemKey > getKey(t.hasher, t.endLevels[0].value)
+		newFirst = elemKey < t.startLevels[0].key
+		newLast = elemKey > t.endLevels[0].key
 	}
 
 	normallyInserted := false
@@ -346,7 +315,7 @@ func (t *SkipList[V]) Insert(e V) {
 
 		index := t.findEntryIndex(elemKey, level)
 
-		var currentNode *SkipListElement[V]
+		var currentNode *SkipListElement[K, V]
 		nextNode := t.startLevels[index]
 
 		for {
@@ -358,7 +327,7 @@ func (t *SkipList[V]) Insert(e V) {
 			}
 
 			// Connect node to next
-			if index <= level && (nextNode == nil || getKey(t.hasher, nextNode.value) > elemKey) {
+			if index <= level && (nextNode == nil || nextNode.key > elemKey) {
 				elem.next[index] = nextNode
 				if currentNode != nil {
 					currentNode.next[index] = elem
@@ -371,7 +340,7 @@ func (t *SkipList[V]) Insert(e V) {
 				}
 			}
 
-			if nextNode != nil && getKey(t.hasher, nextNode.value) <= elemKey {
+			if nextNode != nil && nextNode.key <= elemKey {
 				// Go right
 				currentNode = nextNode
 			} else {
@@ -391,7 +360,7 @@ func (t *SkipList[V]) Insert(e V) {
 
 		if newFirst || normallyInserted {
 
-			if t.startLevels[i] == nil || getKey(t.hasher, t.startLevels[i].value) > elemKey {
+			if t.startLevels[i] == nil || t.startLevels[i].key > elemKey {
 				if i == 0 && t.startLevels[i] != nil {
 					t.startLevels[i].prev = elem
 				}
@@ -421,7 +390,7 @@ func (t *SkipList[V]) Insert(e V) {
 			}
 
 			// Link the startLevels to this element!
-			if t.startLevels[i] == nil || getKey(t.hasher, t.startLevels[i].value) > elemKey {
+			if t.startLevels[i] == nil || t.startLevels[i].key > elemKey {
 				t.startLevels[i] = elem
 			}
 
@@ -435,7 +404,7 @@ func (t *SkipList[V]) Insert(e V) {
 }
 
 // GetValue extracts the ListElement value from a skiplist node.
-func (e *SkipListElement[V]) GetValue() V {
+func (e *SkipListElement[K, V]) GetValue() V {
 	if e == nil {
 		var zero V
 		return zero
@@ -445,19 +414,19 @@ func (e *SkipListElement[V]) GetValue() V {
 
 // GetSmallestNode returns the very first/smallest node in the skiplist.
 // GetSmallestNode runs in O(1)
-func (t *SkipList[V]) GetSmallestNode() *SkipListElement[V] {
+func (t *SkipList[K, V]) GetSmallestNode() *SkipListElement[K, V] {
 	return t.startLevels[0]
 }
 
 // GetLargestNode returns the very last/largest node in the skiplist.
 // GetLargestNode runs in O(1)
-func (t *SkipList[V]) GetLargestNode() *SkipListElement[V] {
+func (t *SkipList[K, V]) GetLargestNode() *SkipListElement[K, V] {
 	return t.endLevels[0]
 }
 
 // Next returns the next element based on the given node.
 // Next will loop around to the first node, if you call it on the last!
-func (t *SkipList[V]) Next(e *SkipListElement[V]) *SkipListElement[V] {
+func (t *SkipList[K, V]) Next(e *SkipListElement[K, V]) *SkipListElement[K, V] {
 	if e.next[0] == nil {
 		return t.startLevels[0]
 	}
@@ -466,7 +435,7 @@ func (t *SkipList[V]) Next(e *SkipListElement[V]) *SkipListElement[V] {
 
 // Prev returns the previous element based on the given node.
 // Prev will loop around to the last node, if you call it on the first!
-func (t *SkipList[V]) Prev(e *SkipListElement[V]) *SkipListElement[V] {
+func (t *SkipList[K, V]) Prev(e *SkipListElement[K, V]) *SkipListElement[K, V] {
 	if e.prev == nil {
 		return t.endLevels[0]
 	}
@@ -474,7 +443,7 @@ func (t *SkipList[V]) Prev(e *SkipListElement[V]) *SkipListElement[V] {
 }
 
 // GetNodeCount returns the number of nodes currently in the skiplist.
-func (t *SkipList[V]) GetNodeCount() int {
+func (t *SkipList[K, V]) GetNodeCount() int {
 	return t.elementCount
 }
 
@@ -482,8 +451,8 @@ func (t *SkipList[V]) GetNodeCount() int {
 // without the need of Deleting and reinserting the node again.
 // Be advised, that ChangeValue only works, if the actual key from ExtractKey() will stay the same!
 // ok is an indicator, wether the value is actually changed.
-func (t *SkipList[V]) ChangeValue(oldValue V, newValue V) (ok bool) {
-	e, ok := t.Find(oldValue)
+func (t *SkipList[K, V]) ChangeValue(key K, newValue V) (ok bool) {
+	e, ok := t.findExtended(key, false)
 	if !ok || e == nil {
 		return false
 	}
@@ -494,7 +463,7 @@ func (t *SkipList[V]) ChangeValue(oldValue V, newValue V) (ok bool) {
 }
 
 // String returns a string format of the skiplist. Useful to get a graphical overview and/or debugging.
-func (t *SkipList[V]) String() string {
+func (t *SkipList[K, V]) String() string {
 	s := ""
 
 	s += " --> "
