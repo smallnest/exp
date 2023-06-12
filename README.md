@@ -1,4 +1,9 @@
 # exp
+
+![GitHub](https://img.shields.io/github/license/smallnest/exp) [![GoDoc](https://godoc.org/github.com/smallnest/exp?status.png)](http://godoc.org/github.com/smallnest/exp)  
+
+
+
 Experimental packages not in std and golang.org/exp
 
 
