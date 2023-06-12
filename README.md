@@ -1,6 +1,6 @@
 # exp
 
-![GitHub](https://img.shields.io/github/license/smallnest/exp) [![GoDoc](https://godoc.org/github.com/smallnest/exp?status.png)](http://godoc.org/github.com/smallnest/exp)  
+![GitHub](https://img.shields.io/github/license/smallnest/exp) ![GitHub Action](https://github.com/smallnest/exp/actions/workflows/action.yaml/badge.svg) ![goreportcard](https://goreportcard.com/badge/github.com/smallnest/exp) [![GoDoc](https://godoc.org/github.com/smallnest/exp?status.png)](http://godoc.org/github.com/smallnest/exp)  
 
 
 
