@@ -16,3 +16,4 @@ Experimental packages not in std and golang.org/exp
   - heap: generic heap
   - list: generic list
   - ring: generic ring
+  - skiplist: generic skiplist based on [mauricegit/skiplist](https://github.com/mauricegit/skiplist)
