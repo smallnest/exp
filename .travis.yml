@@ -1,0 +1,23 @@
+language: go
+
+go:
+  - 1.20.x
+  - gotip
+
+env:
+  - GO111MODULE=on
+
+before_script:
+  - rm -f go.sum
+  - go get -v github.com/smallnest/exp@HEAD
+  - go get github.com/mattn/goveralls
+
+script:
+  - go test -v ./...
+  - goveralls -service=travis-ci
+
+notifications:
+  email:
+    recipients: smallnest@gmail.com
+    on_success: change
+    on_failure: always
