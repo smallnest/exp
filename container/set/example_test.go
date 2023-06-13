@@ -11,12 +11,13 @@ func Example() {
 	s.AddSet(Of(2, 3))
 
 	// Iterate through list and print its contents.
-	for e := range s {
-		fmt.Println(e)
+	for i := 1; i < 5; i++ {
+		fmt.Println(s.Contains(i))
 	}
 
 	// Output:
-	// 1
-	// 2
-	// 3
+	// true
+	// true
+	// true
+	// false
 }
