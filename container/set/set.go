@@ -10,6 +10,11 @@ package set
 // changes to s1 will be reflected in s2 and vice-versa.
 type Set[E comparable] map[E]struct{}
 
+// New returns a new set.
+func New[E comparable]() Set[E] {
+	return make(Set[E])
+}
+
 // Of returns a new set containing the listed Eents.
 func Of[E comparable](v ...E) Set[E] {
 	s := make(Set[E])
@@ -18,43 +23,43 @@ func Of[E comparable](v ...E) Set[E] {
 }
 
 // Add adds Eents to a set.
-func (s *Set[E]) Add(v ...E) {
+func (s Set[E]) Add(v ...E) {
 	for _, e := range v {
-		(*s)[e] = struct{}{}
+		s[e] = struct{}{}
 	}
 }
 
 // AddSet adds the Eents of set s2 to s.
-func (s *Set[E]) AddSet(s2 Set[E]) {
+func (s Set[E]) AddSet(s2 Set[E]) {
 	for e := range s2 {
-		(*s)[e] = struct{}{}
+		s[e] = struct{}{}
 	}
 }
 
 // Remove removes Eents from a set.
 // Eents that are not present are ignored.
-func (s *Set[E]) Remove(v ...E) {
+func (s Set[E]) Remove(v ...E) {
 	for _, e := range v {
-		delete(*s, e)
+		delete(s, e)
 	}
 }
 
 // RemoveSet removes the Eents of set s2 from s.
 // Eents present in s2 but not s are ignored.
-func (s *Set[E]) RemoveSet(s2 Set[E]) {
+func (s Set[E]) RemoveSet(s2 Set[E]) {
 	for e := range s2 {
-		delete(*s, e)
+		delete(s, e)
 	}
 }
 
 // Contains reports whether v is in the set.
-func (s *Set[E]) Contains(v E) bool {
-	_, ok := (*s)[v]
+func (s Set[E]) Contains(v E) bool {
+	_, ok := s[v]
 	return ok
 }
 
 // ContainsAny reports whether any of the Eents in s2 are in s.
-func (s *Set[E]) ContainsAny(s2 Set[E]) bool {
+func (s Set[E]) ContainsAny(s2 Set[E]) bool {
 	for e := range s2 {
 		if s.Contains(e) {
 			return true
@@ -64,7 +69,7 @@ func (s *Set[E]) ContainsAny(s2 Set[E]) bool {
 }
 
 // ContainsAll reports whether all of the Eents in s2 are in s.
-func (s *Set[E]) ContainsAll(s2 Set[E]) bool {
+func (s Set[E]) ContainsAll(s2 Set[E]) bool {
 	for e := range s2 {
 		if !s.Contains(e) {
 			return false
@@ -75,20 +80,20 @@ func (s *Set[E]) ContainsAll(s2 Set[E]) bool {
 
 // Values returns the Eents in the set s as a slice.
 // The values will be in an indeterminate order.
-func (s *Set[E]) Values() []E {
-	v := make([]E, 0, len(*s))
-	for e := range *s {
+func (s Set[E]) Values() []E {
+	v := make([]E, 0, len(s))
+	for e := range s {
 		v = append(v, e)
 	}
 	return v
 }
 
 // Equal reports whether s and s2 contain the same Eents.
-func (s *Set[E]) Equal(s2 Set[E]) bool {
-	if len(*s) != len(s2) {
+func (s Set[E]) Equal(s2 Set[E]) bool {
+	if len(s) != len(s2) {
 		return false
 	}
-	for e := range *s {
+	for e := range s {
 		if !s2.Contains(e) {
 			return false
 		}
@@ -98,39 +103,39 @@ func (s *Set[E]) Equal(s2 Set[E]) bool {
 
 // Clear removes all Eents from s, leaving it empty.
 func (s *Set[E]) Clear() {
-	// clear(*s)
+	// clears
 	*s = make(Set[E])
 }
 
 // Clone returns a copy of s.
 // The Eents are copied using assignment,
 // so this is a shallow clone.
-func (s *Set[E]) Clone() Set[E] {
+func (s Set[E]) Clone() Set[E] {
 	s2 := make(Set[E])
-	s2.AddSet(*s)
+	s2.AddSet(s)
 	return s2
 }
 
 // Filter deletes any Eents from s for which keep returns false.
-func (s *Set[E]) Filter(keep func(E) bool) {
-	for e := range *s {
+func (s Set[E]) Filter(keep func(E) bool) {
+	for e := range s {
 		if !keep(e) {
-			delete(*s, e)
+			delete(s, e)
 		}
 	}
 }
 
 // Len returns the number of Eents in s.
-func (s *Set[E]) Len() int {
-	return len(*s)
+func (s Set[E]) Len() int {
+	return len(s)
 }
 
 // Do calls f on every Eent in the set s,
 // stopping if f returns false.
 // f should not change s.
 // f will be called on values in an indeterminate order.
-func (s *Set[E]) Do(f func(E) bool) {
-	for e := range *s {
+func (s Set[E]) Do(f func(E) bool) {
+	for e := range s {
 		if !f(e) {
 			break
 		}
