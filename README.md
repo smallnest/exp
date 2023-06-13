@@ -17,3 +17,4 @@ Experimental packages not in std and golang.org/exp
   - list: generic list
   - ring: generic ring
   - skiplist: generic skiplist based on [mauricegit/skiplist](https://github.com/mauricegit/skiplist)
+  - set: discussion at https://github.com/golang/go/discussions/47331 (will add tests for set)
