@@ -18,3 +18,6 @@ Experimental packages not in std and golang.org/exp
   - ring: generic ring
   - skiplist: generic skiplist based on [mauricegit/skiplist](https://github.com/mauricegit/skiplist)
   - set: discussion at https://github.com/golang/go/discussions/47331 
+
+- stat
+  - win: sliding window
