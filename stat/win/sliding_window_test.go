@@ -20,19 +20,17 @@ func TestSliding(t *testing.T) {
 		}
 	}()
 
-	var slided int
-	var bucket *Bucket[int64, int]
-
 	time.Sleep(6 * time.Second)
-	_, _, err = w.Last()
+	_, _, _, err = w.Last()
 	assert.NoError(t, err)
-	slided, bucket, err = w.Last()
+	slided, bucket, window, err := w.Last()
 	assert.NoError(t, err)
 
 	require.NotEmpty(t, bucket)
 
 	assert.GreaterOrEqual(t, len(bucket.Values()), 9)
 	assert.GreaterOrEqual(t, slided, 1)
+	assert.GreaterOrEqual(t, len(window), 0)
 }
 
 func TestSlidingChannel(t *testing.T) {
@@ -55,11 +53,13 @@ loop:
 		case b := <-w.SlidedChan:
 			n++
 			if n == 1 {
-				assert.GreaterOrEqual(t, len(b.Values()), 0)
+				assert.GreaterOrEqual(t, len(b.SlideOut.Values()), 0)
+				assert.NotEmpty(t, b.CurrentWindow)
 				continue
 			}
 			timer.Stop()
-			assert.GreaterOrEqual(t, len(b.Values()), 9)
+			assert.GreaterOrEqual(t, len(b.SlideOut.Values()), 9)
+			assert.NotEmpty(t, b.CurrentWindow)
 			break loop
 		case <-timer.C:
 			t.Fatal("timeout")

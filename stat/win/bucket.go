@@ -68,6 +68,20 @@ func (h *buckets[K, V]) Last() *Bucket[K, V] {
 	return buckets
 }
 
+// LastN returns the last n buckets but not pop them.
+func (h *buckets[K, V]) LastN(n int) []*Bucket[K, V] {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	if n > len(h.bs) {
+		n = len(h.bs)
+	}
+
+	buckets := h.bs[:n]
+
+	return buckets
+}
+
 // Bucket is a key-value pair.
 type Bucket[K Ordered, V any] struct {
 	Key K

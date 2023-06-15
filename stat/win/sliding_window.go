@@ -6,19 +6,30 @@ import (
 	"time"
 )
 
+// Result is the result of slided out.
+type Result[K Ordered, V any] struct {
+	SlideOut      *Bucket[K, V]
+	CurrentWindow []*Bucket[K, V]
+}
+
 // Sliding is a sliding window.
+//
+//	Each granularity has one bucket. One window contains several buckets.
+//
+// The window slides forward by granularity and slides out a bucket.
 type Sliding[K Ordered, V any] struct {
 	window      time.Duration // window duration
-	granularity time.Duration // granularity of the window
+	granularity time.Duration // granularity of the window.
+	n           int           // number of buckets(granularity) in the window
 	delay       time.Duration // delay of the window
 
 	buckets *buckets[K, V] // buckets not yet in slided windows
 
-	slidedBucketsMu sync.Mutex
-	slidedBuckets   []*Bucket[K, V] // buckets in slided windows
+	slideOutBucketsMu sync.Mutex
+	slideOutBuckets   []Result[K, V] // buckets in slided windows
 
 	// SlidedChan is a channel to receive slided buckets.
-	SlidedChan chan *Bucket[K, V] // insert slided buckets into channel to inform other watchers
+	SlidedChan chan Result[K, V] // insert slided buckets into channel to inform other watchers
 
 	stopOnce sync.Once
 	stopped  chan struct{}
@@ -52,6 +63,7 @@ func newSliding[K Ordered, V any](window, granularity, delay time.Duration) (*Sl
 	s := &Sliding[K, V]{
 		window:      window,
 		granularity: granularity,
+		n:           int(window / granularity),
 		delay:       delay,
 		buckets:     NewBuckets[K, V](),
 		stopped:     make(chan struct{}),
@@ -66,7 +78,7 @@ func NewChanSize[K Ordered, V any](window, granularity, delay time.Duration, cha
 	if err != nil {
 		return nil, err
 	}
-	s.SlidedChan = make(chan *Bucket[K, V], chanSize)
+	s.SlidedChan = make(chan Result[K, V], chanSize)
 
 	go s.shift()
 
@@ -95,14 +107,20 @@ func (s *Sliding[K, V]) shift() {
 
 func (s *Sliding[K, V]) step() {
 	last := s.buckets.Last()
+	lastN := s.buckets.LastN(s.n)
+
+	result := Result[K, V]{
+		SlideOut:      last,
+		CurrentWindow: lastN,
+	}
 	if last != nil {
-		s.slidedBucketsMu.Lock()
-		s.slidedBuckets = append(s.slidedBuckets, last)
-		s.slidedBucketsMu.Unlock()
+		s.slideOutBucketsMu.Lock()
+		s.slideOutBuckets = append(s.slideOutBuckets, result)
+		s.slideOutBucketsMu.Unlock()
 
 		if s.SlidedChan != nil {
 			select {
-			case s.SlidedChan <- last:
+			case s.SlidedChan <- result:
 			default:
 				// chan is full
 			}
@@ -116,19 +134,22 @@ func (s *Sliding[K, V]) Add(key K, v V) {
 }
 
 // Last returns the last bucket.
-func (s *Sliding[K, V]) Last() (slided int, last *Bucket[K, V], err error) {
-	s.slidedBucketsMu.Lock()
-	defer s.slidedBucketsMu.Unlock()
+func (s *Sliding[K, V]) Last() (slided int, last *Bucket[K, V], currentWindow []*Bucket[K, V], err error) {
+	s.slideOutBucketsMu.Lock()
+	defer s.slideOutBucketsMu.Unlock()
 
-	slided = len(s.slidedBuckets)
+	slided = len(s.slideOutBuckets)
 	if slided == 0 {
-		return 0, nil, nil
+		return 0, nil, nil, nil
 	}
 
-	last = s.slidedBuckets[0]
-	s.slidedBuckets = s.slidedBuckets[1:]
+	sb := s.slideOutBuckets[0]
+	last = sb.SlideOut
+	currentWindow = sb.CurrentWindow
 
-	return slided, last, nil
+	s.slideOutBuckets = s.slideOutBuckets[1:]
+
+	return slided, last, currentWindow, nil
 }
 
 // Stop stops the sliding window.

@@ -46,19 +46,19 @@ func ExampleSliding() {
 	}()
 
 	for b := range w.SlidedChan {
-		if b == nil {
+		if b.SlideOut == nil {
 			return
 		}
 
-		key := b.Key
+		key := b.SlideOut.Key
 
 		var total, fail int
-		for _, v := range b.Values() {
+		for _, v := range b.SlideOut.Values() {
 			total += v.Success
 			fail += v.Fail
 		}
 
-		log.Printf("key: %s, total: %d, fail: %d", time.Unix(key, 0).Format(time.DateTime), total, fail)
+		log.Printf("key: %s, total: %d, fail: %d, %d buckets in current window", time.Unix(key, 0).Format(time.DateTime), total, fail, len(b.CurrentWindow))
 	}
 
 }
