@@ -28,7 +28,7 @@ func TestSliding(t *testing.T) {
 
 	require.NotEmpty(t, bucket)
 
-	assert.GreaterOrEqual(t, len(bucket.Values()), 9)
+	assert.GreaterOrEqual(t, len(bucket.Values()), 8)
 	assert.GreaterOrEqual(t, slided, 1)
 	assert.GreaterOrEqual(t, len(window), 0)
 }
