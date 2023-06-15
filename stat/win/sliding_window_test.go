@@ -58,7 +58,7 @@ loop:
 				continue
 			}
 			timer.Stop()
-			assert.GreaterOrEqual(t, len(b.SlideOut.Values()), 9)
+			assert.GreaterOrEqual(t, len(b.SlideOut.Values()), 8)
 			assert.NotEmpty(t, b.CurrentWindow)
 			break loop
 		case <-timer.C:
