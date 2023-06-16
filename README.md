@@ -19,7 +19,7 @@ Experimental packages not in std and golang.org/exp
   - **skiplist**: generic skiplist based on [mauricegit/skiplist](https://github.com/mauricegit/skiplist)
   - **set**: discussion at https://github.com/golang/go/discussions/47331 
   - **maps**:
-    - OrderedMap: a insert-order map. The main code is forked [wk8/go-ordered-map](https://github.com/wk8/go-ordered-map) 
+    - **OrderedMap**: an insert-order map. The main code is forked [wk8/go-ordered-map](https://github.com/wk8/go-ordered-map) 
 
 - **stat**
   - **win**: sliding window ![](stat/win/sliding.jpg)
