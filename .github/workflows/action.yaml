@@ -14,8 +14,31 @@ jobs:
         go-version: ${{ matrix.go-version }}
     - name: Build
       run: go build -v ./...
+
     - name: Test
       run: go test -v ./...
+
+    - name: Update coverage report
+      uses: ncruces/go-coverage-report@v0
+      with:
+        report: 'true'
+        chart: 'true'
+        amend: 'false'
+      if: |
+        matrix.os == 'ubuntu-latest' &&
+        github.event_name == 'push'  
+      continue-on-error: true
+      
+    - name: Update coverage report
+      uses: ncruces/go-coverage-report@v0
+      with:
+        report: 'true'
+        chart: 'true'
+        amend: 'false'
+      if: |
+        matrix.os == 'ubuntu-latest' &&
+        github.event_name == 'push'  
+      continue-on-error: true
 
   test-cache:
     runs-on: ubuntu-latest
