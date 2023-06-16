@@ -28,15 +28,3 @@ jobs:
         matrix.os == 'ubuntu-latest' &&
         github.event_name == 'push'  
       continue-on-error: true
-
-  test-cache:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-go@v4
-      with:
-        go-version: 1.20.x
-    - name: Build
-      run: go build -v ./...
-    - name: Test
-      run: go test -v ./...
