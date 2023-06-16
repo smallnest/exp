@@ -10,7 +10,7 @@ import (
 
 func TestMarshalJSON(t *testing.T) {
 	t.Run("int key", func(t *testing.T) {
-		m := New[int, any](10)
+		m := NewOrderedMap[int, any](10)
 		m.Set(1, "bar")
 		m.Set(7, "baz")
 		m.Set(2, 28)
@@ -28,7 +28,7 @@ func TestMarshalJSON(t *testing.T) {
 	})
 
 	t.Run("string key", func(t *testing.T) {
-		m := New[string, any](2)
+		m := NewOrderedMap[string, any](2)
 		m.Set("test", "bar")
 		m.Set("abc", true)
 
@@ -39,7 +39,7 @@ func TestMarshalJSON(t *testing.T) {
 
 	t.Run("typed string key", func(t *testing.T) {
 		type myString string
-		m := New[myString, any](2)
+		m := NewOrderedMap[myString, any](2)
 		m.Set("test", "bar")
 		m.Set("abc", true)
 
@@ -50,7 +50,7 @@ func TestMarshalJSON(t *testing.T) {
 
 	t.Run("typed int key", func(t *testing.T) {
 		type myInt uint32
-		m := New[myInt, any](5)
+		m := NewOrderedMap[myInt, any](5)
 		m.Set(1, "bar")
 		m.Set(7, "baz")
 		m.Set(2, 28)
@@ -63,7 +63,7 @@ func TestMarshalJSON(t *testing.T) {
 	})
 
 	t.Run("empty map", func(t *testing.T) {
-		om := New[string, any](0)
+		om := NewOrderedMap[string, any](0)
 
 		b, err := json.Marshal(om)
 		assert.NoError(t, err)
@@ -75,7 +75,7 @@ func TestUnmarshallJSON(t *testing.T) {
 	t.Run("int key", func(t *testing.T) {
 		data := `{"1":"bar","7":"baz","2":28,"3":100,"4":"baz","5":"28","6":"100","8":"baz"}`
 
-		om := New[int, any](10)
+		om := NewOrderedMap[int, any](10)
 		require.NoError(t, json.Unmarshal([]byte(data), &om))
 
 		assertOrderedPairsEqual(t, om,
@@ -86,7 +86,7 @@ func TestUnmarshallJSON(t *testing.T) {
 	t.Run("string key", func(t *testing.T) {
 		data := `{"test":"bar","abc":true}`
 
-		om := New[string, any](10)
+		om := NewOrderedMap[string, any](10)
 		require.NoError(t, json.Unmarshal([]byte(data), &om))
 
 		assertOrderedPairsEqual(t, om,
@@ -98,7 +98,7 @@ func TestUnmarshallJSON(t *testing.T) {
 		data := `{"test":"bar","abc":true}`
 
 		type myString string
-		om := New[myString, any](10)
+		om := NewOrderedMap[myString, any](10)
 		require.NoError(t, json.Unmarshal([]byte(data), &om))
 
 		assertOrderedPairsEqual(t, om,
@@ -110,7 +110,7 @@ func TestUnmarshallJSON(t *testing.T) {
 		data := `{"1":"bar","7":"baz","2":28,"3":100,"4":"baz","5":"28","6":"100","8":"baz"}`
 
 		type myInt uint32
-		om := New[myInt, any](10)
+		om := NewOrderedMap[myInt, any](10)
 		require.NoError(t, json.Unmarshal([]byte(data), &om))
 
 		assertOrderedPairsEqual(t, om,
@@ -120,7 +120,7 @@ func TestUnmarshallJSON(t *testing.T) {
 
 	t.Run("when fed with an input that's not an object", func(t *testing.T) {
 		for _, data := range []string{"true", `["foo"]`, "42", `"foo"`} {
-			om := New[int, any](10)
+			om := NewOrderedMap[int, any](10)
 			require.Error(t, json.Unmarshal([]byte(data), &om))
 		}
 	})
@@ -128,7 +128,7 @@ func TestUnmarshallJSON(t *testing.T) {
 	t.Run("empty map", func(t *testing.T) {
 		data := `{}`
 
-		om := New[int, any](0)
+		om := NewOrderedMap[int, any](0)
 		require.NoError(t, json.Unmarshal([]byte(data), &om))
 
 		assertLenEqual(t, om, 0)

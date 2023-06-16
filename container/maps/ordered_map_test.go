@@ -8,7 +8,7 @@ import (
 
 func TestOrderedMap(t *testing.T) {
 	// create
-	m := New[int, int](10)
+	m := NewOrderedMap[int, int](10)
 	assert.Equal(t, 0, m.Len())
 
 	// set
@@ -55,20 +55,24 @@ func TestOrderedMap(t *testing.T) {
 
 	//range
 	k := 0
-	m.Range(func(key int, value int) {
+	m.Range(func(key int, value int) bool {
 		assert.Equal(t, k, key)
 		assert.Equal(t, k, value)
 		k++
+
+		return true
 	})
 
 	// foreach
-	m.ForEach(func(k int, v int) {
+	m.ForEach(func(k int, v int) bool {
 		if k < 0 || k > 9 {
 			t.Error("key out of range", k)
 		}
 		if v < 0 || v > 9 {
 			t.Error("value out of range", v)
 		}
+
+		return true
 	})
 
 	// oldest
@@ -89,12 +93,12 @@ func TestOrderedMap(t *testing.T) {
 }
 
 func TestOrderedMap_Add(t *testing.T) {
-	m := New[int, int](10)
+	m := NewOrderedMap[int, int](10)
 	for i := 0; i < 10; i++ {
 		m.Set(i, i)
 	}
 
-	m2 := New[int, int](10)
+	m2 := NewOrderedMap[int, int](10)
 	for i := 5; i < 15; i++ {
 		m.Set(i, i)
 	}

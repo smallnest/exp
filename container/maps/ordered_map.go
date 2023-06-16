@@ -38,9 +38,9 @@ type OrderedMap[K comparable, V any] struct {
 	list    *list.List[*Entry[K, V]]
 }
 
-// New creates an empty OrderedMap.
+// NewOrderedMap creates an empty OrderedMap.
 // The parameter `capability` is the initial size of the map.
-func New[K comparable, V any](capability int) *OrderedMap[K, V] {
+func NewOrderedMap[K comparable, V any](capability int) *OrderedMap[K, V] {
 	orderedMap := &OrderedMap[K, V]{
 		entries: make(map[K]*Entry[K, V], capability),
 		list:    list.New[*Entry[K, V]](),
@@ -169,27 +169,32 @@ func (m *OrderedMap[K, V]) Newest() *Entry[K, V] {
 }
 
 // Range calls f sequentially for each key and value in the map as insert order .
-func (m *OrderedMap[K, V]) Range(f func(key K, value V)) {
+func (m *OrderedMap[K, V]) Range(f func(key K, value V) bool) {
 	list := m.list
 	for e := list.Front(); e != nil; e = e.Next() {
 		if e.Value != nil {
-			f(e.Value.Key, e.Value.Value)
+			if ok := f(e.Value.Key, e.Value.Value); !ok {
+				return
+			}
 		}
 	}
 }
 
 // ForEach calls f  for each value in the map as random order like builtin map.
-func (m *OrderedMap[K, V]) ForEach(f func(key K, value V)) {
+func (m *OrderedMap[K, V]) ForEach(f func(key K, value V) bool) {
 	for key, value := range m.entries {
-		f(key, value.Value)
+		if ok := f(key, value.Value); !ok {
+			return
+		}
 	}
 }
 
 // Keys returns all keys of the map as insert order.
 func (m *OrderedMap[K, V]) Keys() []K {
 	r := make([]K, 0, len(m.entries))
-	m.Range(func(key K, value V) {
+	m.Range(func(key K, value V) bool {
 		r = append(r, key)
+		return true
 	})
 
 	return r
@@ -198,8 +203,9 @@ func (m *OrderedMap[K, V]) Keys() []K {
 // Values returns all values of the map as insert order.
 func (m *OrderedMap[K, V]) Values() []V {
 	r := make([]V, 0, len(m.entries))
-	m.Range(func(key K, value V) {
+	m.Range(func(key K, value V) bool {
 		r = append(r, value)
+		return true
 	})
 
 	return r
@@ -211,7 +217,7 @@ func (m *OrderedMap[K, V]) Clone() *OrderedMap[K, V] {
 		return nil
 	}
 
-	result := New[K, V](m.Len())
+	result := NewOrderedMap[K, V](m.Len())
 	result.AddOrderedMap(*m)
 
 	return result
