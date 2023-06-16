@@ -6,6 +6,10 @@ import (
 	"time"
 )
 
+var (
+	ErrorKeyBehind = errors.New("Key is behind")
+)
+
 // Result is the result of slided out.
 type Result[K Ordered, V any] struct {
 	SlideOut      *Bucket[K, V]
@@ -25,6 +29,7 @@ type Sliding[K Ordered, V any] struct {
 
 	buckets *buckets[K, V] // buckets not yet in slided windows
 
+	lastKey           K // last key
 	slideOutBucketsMu sync.Mutex
 	slideOutBuckets   []Result[K, V] // buckets in slided windows
 
@@ -106,7 +111,7 @@ func (s *Sliding[K, V]) shift() {
 }
 
 func (s *Sliding[K, V]) step() {
-	last := s.buckets.Last()
+	last := s.buckets.Pop()
 	lastN := s.buckets.LastN(s.n)
 
 	result := Result[K, V]{
@@ -128,29 +133,47 @@ func (s *Sliding[K, V]) step() {
 	}
 }
 
-// Add adds a value to the current window.
-func (s *Sliding[K, V]) Add(key K, v V) {
-	s.buckets.Add(key, v)
+// ForceForward forces the window to slide forward once.
+func (s *Sliding[K, V]) ForceForward() {
+	s.step()
 }
 
 // Last returns the last bucket.
-func (s *Sliding[K, V]) Last() (slided int, last *Bucket[K, V], currentWindow []*Bucket[K, V], err error) {
-	s.slideOutBucketsMu.Lock()
-	defer s.slideOutBucketsMu.Unlock()
-
-	slided = len(s.slideOutBuckets)
-	if slided == 0 {
-		return 0, nil, nil, nil
+func (s *Sliding[K, V]) Last() *Bucket[K, V] {
+	buckets := s.buckets.LastN(1)
+	if len(buckets) == 0 {
+		return nil
 	}
 
-	sb := s.slideOutBuckets[0]
-	last = sb.SlideOut
-	currentWindow = sb.CurrentWindow
-
-	s.slideOutBuckets = s.slideOutBuckets[1:]
-
-	return slided, last, currentWindow, nil
+	return buckets[0]
 }
+
+// Add adds a value to the current window.
+func (s *Sliding[K, V]) Add(key K, v V) error {
+	return s.buckets.Add(key, v, s.lastKey)
+}
+
+// // Last returns the last bucket.
+// // Forward the sliding mannually.
+// func (s *Sliding[K, V]) Last() (slided int, last *Bucket[K, V], currentWindow []*Bucket[K, V], err error) {
+// 	s.slideOutBucketsMu.Lock()
+// 	defer s.slideOutBucketsMu.Unlock()
+
+// 	slided = len(s.slideOutBuckets)
+// 	if slided == 0 {
+// 		return 0, nil, nil, nil
+// 	}
+
+// 	sb := s.slideOutBuckets[0]
+// 	last = sb.SlideOut
+// 	currentWindow = sb.CurrentWindow
+
+// 	s.slideOutBuckets = s.slideOutBuckets[1:]
+
+// 	s.lastKey = last.Key
+
+// 	return slided, last, currentWindow, nil
+// }
 
 // Stop stops the sliding window.
 func (s *Sliding[_, _]) Stop() {

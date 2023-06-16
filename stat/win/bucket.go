@@ -40,10 +40,15 @@ func (h *queue[K, V]) Pop() *Bucket[K, V] {
 }
 
 // Add adds a value to the bucket.
-func (h *buckets[K, V]) Add(k K, v V) {
+func (h *buckets[K, V]) Add(k K, v V, lastKey K) error {
 	h.mu.Lock()
 	bucket := h.m[k]
 	if bucket == nil {
+		if k <= lastKey {
+			h.mu.Unlock()
+			return ErrorKeyBehind
+		}
+
 		bucket = &Bucket[K, V]{Key: k, Value: []V{}}
 		h.m[k] = bucket
 		heap.Push(&h.bs, bucket)
@@ -51,10 +56,12 @@ func (h *buckets[K, V]) Add(k K, v V) {
 	h.mu.Unlock()
 
 	bucket.Add(v)
+
+	return nil
 }
 
-// Get returns the bucket for the key.
-func (h *buckets[K, V]) Last() *Bucket[K, V] {
+// Pop returns the bucket for the key.
+func (h *buckets[K, V]) Pop() *Bucket[K, V] {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
