@@ -9,15 +9,17 @@ Experimental packages not in std and golang.org/exp
 
 ## packages
 
-- sync
+- **sync**
   - generic sync.Map: modify sync.Map to support generic
 
-- container
+- **container**
   - **heap**: generic heap
   - **list**: generic list
   - **ring**: generic ring
   - **skiplist**: generic skiplist based on [mauricegit/skiplist](https://github.com/mauricegit/skiplist)
   - **set**: discussion at https://github.com/golang/go/discussions/47331 
+  - **maps**:
+    - OrderedMap: a insert-order map. The main code is forked [wk8/go-ordered-map](https://github.com/wk8/go-ordered-map) 
 
-- stat
+- **stat**
   - **win**: sliding window ![](stat/win/sliding.jpg)
