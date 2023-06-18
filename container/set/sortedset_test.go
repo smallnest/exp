@@ -2,11 +2,13 @@ package set
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func TestSet(t *testing.T) {
+func TestSortedSet(t *testing.T) {
 	// Create a set
-	s := OfSet(1, 2, 3)
+	s := OfSortedSet(1, 2, 3)
 
 	// Test Add
 	s.Add(4)
@@ -15,10 +17,10 @@ func TestSet(t *testing.T) {
 	}
 
 	// Test AddSet
-	s2 := OfSet(5, 6, 7)
+	s2 := OfSortedSet(5, 6, 7)
 	s.AddSet(s2)
 	if !s.ContainsAll(s2) {
-		t.Errorf("Expected set to contain all elements from s2, but it does not")
+		t.Errorf("Expected set to contain all elements from s2, but it does not: %v", s.Values())
 	}
 
 	// Test Remove
@@ -28,30 +30,30 @@ func TestSet(t *testing.T) {
 	}
 
 	// Test RemoveSet
-	s.RemoveSet(OfSet(6))
+	s.RemoveSet(OfSortedSet(6))
 	if s.Contains(6) {
-		t.Errorf("Expected set to not contain element 6, but it does")
+		t.Errorf("Expected set to not contain element 6, but it does: %v", s.Values())
 	}
 
 	// Test ContainsAny
-	if !s.ContainsAny(OfSet(7, 8, 9)) {
+	if !s.ContainsAny(OfSortedSet(7, 8, 9)) {
 		t.Errorf("Expected set to contain at least one element from the provided set, but it does not")
 	}
 
 	// Test ContainsAll
-	if !s.ContainsAll(OfSet(2, 3)) {
+	if !s.ContainsAll(OfSortedSet(2, 3)) {
 		t.Errorf("Expected set to contain all elements from the provided set, but it does not")
 	}
 
 	// Test Values
 	values := s.Values()
 	expectedValues := []int{2, 3, 4, 5, 7}
-	if !s.Equal(OfSet(expectedValues...)) {
+	if !s.Equal(OfSortedSet(expectedValues...)) {
 		t.Errorf("Expected values %v, but got %v", expectedValues, values)
 	}
 
 	// Test Equal
-	s3 := OfSet(2, 3, 4, 5, 7)
+	s3 := OfSortedSet(2, 3, 4, 5, 7)
 	if !s.Equal(s3) {
 		t.Errorf("Expected sets to be equal, but they are not")
 	}
@@ -84,7 +86,7 @@ func TestSet(t *testing.T) {
 
 	// Test Do
 	sum := 0
-	s = OfSet(1, 2, 3)
+	s = OfSortedSet(1, 2, 3)
 	s.Do(func(e int) bool {
 		sum += e
 		return true
@@ -94,20 +96,34 @@ func TestSet(t *testing.T) {
 	}
 
 	// Test Union
-	s5 := Union(OfSet(1, 2, 3), OfSet(3, 4, 5))
-	if !s5.Equal(OfSet(1, 2, 3, 4, 5)) {
+	s5 := UnionSortedSet(OfSortedSet(1, 2, 3), OfSortedSet(3, 4, 5))
+	if !s5.Equal(OfSortedSet(1, 2, 3, 4, 5)) {
 		t.Errorf("Expected union set to be {1, 2, 3, 4, 5}, but got %v", s5.Values())
 	}
 
 	// Test Intersection
-	s6 := Intersection(OfSet(1, 2, 3), OfSet(3, 4, 5))
-	if !s6.Equal(OfSet(3)) {
+	s6 := IntersectionSortedSet(OfSortedSet(1, 2, 3), OfSortedSet(3, 4, 5))
+	if !s6.Equal(OfSortedSet(3)) {
 		t.Errorf("Expected intersection set to be {3}, but got %v", s6.Values())
 	}
 
 	// Test Difference
-	s7 := Difference(OfSet(1, 2, 3, 4, 5), OfSet(3, 4))
-	if !s7.Equal(OfSet(1, 2, 5)) {
+	s7 := DifferenceSortedSet(OfSortedSet(1, 2, 3, 4, 5), OfSortedSet(3, 4))
+	if !s7.Equal(OfSortedSet(1, 2, 5)) {
 		t.Errorf("Expected difference set to be {1, 2, 5}, but got %v", s7.Values())
 	}
+}
+
+func TestSortedSet_Order(t *testing.T) {
+	s := OfSortedSet(1, 2, 3)
+	s.Add(4)
+	s.Add(5)
+	s.Add(6)
+	s.Remove(3)
+	s.Remove(5)
+	s.AddSet(OfSortedSet(7, 8, 9))
+	s.Add(3)
+
+	expectedValues := []int{1, 2, 4, 6, 7, 8, 9, 3}
+	assert.Equal(t, expectedValues, s.Values())
 }

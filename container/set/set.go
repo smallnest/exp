@@ -1,51 +1,51 @@
-// Package set defines a Set type that holds a set of Eents.
+// Package set defines a Set type that holds a set of elements.
 package set
 
 // discussion at https://github.com/golang/go/discussions/47331
 
-// Set is a set of Eents of some comparable type.
+// Set is a set of elements of some comparable type.
 // Sets are implemented using maps, and have similar performance characteristics.
 // Like maps, Sets are reference types.
-// That is, for Sets s1 = s2 will leave s1 and s2 pointing to the same set of Eents:
+// That is, for Sets s1 = s2 will leave s1 and s2 pointing to the same set of elements:
 // changes to s1 will be reflected in s2 and vice-versa.
 type Set[E comparable] map[E]struct{}
 
-// New returns a new set.
-func New[E comparable]() Set[E] {
+// NewSet returns a new set.
+func NewSet[E comparable]() Set[E] {
 	return make(Set[E])
 }
 
-// Of returns a new set containing the listed Eents.
-func Of[E comparable](v ...E) Set[E] {
+// OfSet returns a new set containing the listed elements.
+func OfSet[E comparable](v ...E) Set[E] {
 	s := make(Set[E])
 	s.Add(v...)
 	return s
 }
 
-// Add adds Eents to a set.
+// Add adds elements to a set.
 func (s Set[E]) Add(v ...E) {
 	for _, e := range v {
 		s[e] = struct{}{}
 	}
 }
 
-// AddSet adds the Eents of set s2 to s.
+// AddSet adds the elements of set s2 to s.
 func (s Set[E]) AddSet(s2 Set[E]) {
 	for e := range s2 {
 		s[e] = struct{}{}
 	}
 }
 
-// Remove removes Eents from a set.
-// Eents that are not present are ignored.
+// Remove removes elements from a set.
+// elements that are not present are ignored.
 func (s Set[E]) Remove(v ...E) {
 	for _, e := range v {
 		delete(s, e)
 	}
 }
 
-// RemoveSet removes the Eents of set s2 from s.
-// Eents present in s2 but not s are ignored.
+// RemoveSet removes the elements of set s2 from s.
+// elements present in s2 but not s are ignored.
 func (s Set[E]) RemoveSet(s2 Set[E]) {
 	for e := range s2 {
 		delete(s, e)
@@ -58,7 +58,7 @@ func (s Set[E]) Contains(v E) bool {
 	return ok
 }
 
-// ContainsAny reports whether any of the Eents in s2 are in s.
+// ContainsAny reports whether any of the elements in s2 are in s.
 func (s Set[E]) ContainsAny(s2 Set[E]) bool {
 	for e := range s2 {
 		if s.Contains(e) {
@@ -68,7 +68,7 @@ func (s Set[E]) ContainsAny(s2 Set[E]) bool {
 	return false
 }
 
-// ContainsAll reports whether all of the Eents in s2 are in s.
+// ContainsAll reports whether all of the elements in s2 are in s.
 func (s Set[E]) ContainsAll(s2 Set[E]) bool {
 	for e := range s2 {
 		if !s.Contains(e) {
@@ -78,7 +78,7 @@ func (s Set[E]) ContainsAll(s2 Set[E]) bool {
 	return true
 }
 
-// Values returns the Eents in the set s as a slice.
+// Values returns the elements in the set s as a slice.
 // The values will be in an indeterminate order.
 func (s Set[E]) Values() []E {
 	v := make([]E, 0, len(s))
@@ -88,7 +88,7 @@ func (s Set[E]) Values() []E {
 	return v
 }
 
-// Equal reports whether s and s2 contain the same Eents.
+// Equal reports whether s and s2 contain the same elements.
 func (s Set[E]) Equal(s2 Set[E]) bool {
 	if len(s) != len(s2) {
 		return false
@@ -101,14 +101,14 @@ func (s Set[E]) Equal(s2 Set[E]) bool {
 	return true
 }
 
-// Clear removes all Eents from s, leaving it empty.
+// Clear removes all elements from s, leaving it empty.
 func (s *Set[E]) Clear() {
 	// clears
 	*s = make(Set[E])
 }
 
 // Clone returns a copy of s.
-// The Eents are copied using assignment,
+// The elements are copied using assignment,
 // so this is a shallow clone.
 func (s Set[E]) Clone() Set[E] {
 	s2 := make(Set[E])
@@ -116,7 +116,7 @@ func (s Set[E]) Clone() Set[E] {
 	return s2
 }
 
-// Filter deletes any Eents from s for which keep returns false.
+// Filter deletes any elements from s for which keep returns false.
 func (s Set[E]) Filter(keep func(E) bool) {
 	for e := range s {
 		if !keep(e) {
@@ -125,7 +125,7 @@ func (s Set[E]) Filter(keep func(E) bool) {
 	}
 }
 
-// Len returns the number of Eents in s.
+// Len returns the number of elements in s.
 func (s Set[E]) Len() int {
 	return len(s)
 }
@@ -161,7 +161,7 @@ func Intersection[E comparable](s1, s2 Set[E]) Set[E] {
 	return s
 }
 
-// Difference constructs a new set containing the Eents of s1 that
+// Difference constructs a new set containing the elements of s1 that
 // are not present in s2.
 func Difference[E comparable](s1, s2 Set[E]) Set[E] {
 	s := make(Set[E])

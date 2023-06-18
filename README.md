@@ -17,7 +17,9 @@ Experimental packages not in std and golang.org/exp
   - **list**: generic list
   - **ring**: generic ring
   - **skiplist**: generic skiplist based on [mauricegit/skiplist](https://github.com/mauricegit/skiplist)
-  - **set**: discussion at https://github.com/golang/go/discussions/47331 
+  - **set**: discussion at https://github.com/golang/go/discussions/47331
+    - **Set**: generic set
+    - **SortedSet**: generic sorted set 
   - **maps**:
     - **OrderedMap**: an insert-order map. The main code is forked [wk8/go-ordered-map](https://github.com/wk8/go-ordered-map)
     - **BidiMap**: a bidirectional map. 
