@@ -5,7 +5,7 @@ jobs:
     strategy:
       matrix:
         go-version: [1.20.x]
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
@@ -15,40 +15,22 @@ jobs:
     - name: Build
       run: go build -v ./...
 
-    - uses: actions/cache@v2
-      with:
-        path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
+    - name: Test
+      run:  go test -v -coverprofile=profile.cov ./...
 
-    - name: Run Test
-      run: |
-        go test -v ./... -covermode=count -coverprofile=coverage.out
-        go tool cover -func=coverage.out -o=coverage.out
+    - name: Send coverage
+        uses: shogo82148/actions-goveralls@v1
+        with:
+          path-to-profile: profile.cov
+          flag-name: Go-${{ matrix.go }}
+          parallel: true
 
-    - name: Go Coverage Badge  # Pass the `coverage.out` output to this action
-      uses: tj-actions/coverage-badge-go@v2
-      with:
-        filename: coverage.out
+  # notifies that all test jobs are finished.
+  finish:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: shogo82148/actions-goveralls@v1
+        with:
+          parallel-finished: true
 
-    - name: Verify Changed files
-      uses: tj-actions/verify-changed-files@v12
-      id: verify-changed-files
-      with:
-        files: README.md
-
-    - name: Commit changes
-      if: steps.verify-changed-files.outputs.files_changed == 'true'
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add README.md
-        git commit -m "chore: Updated coverage badge."
-
-    - name: Push changes
-      if: steps.verify-changed-files.outputs.files_changed == 'true'
-      uses: ad-m/github-push-action@master
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: ${{ github.head_ref }}
