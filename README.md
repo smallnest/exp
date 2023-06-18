@@ -21,6 +21,7 @@ Experimental packages not in std and golang.org/exp
   - **maps**:
     - **OrderedMap**: an insert-order map. The main code is forked [wk8/go-ordered-map](https://github.com/wk8/go-ordered-map)
     - **BidiMap**: a bidirectional map. 
+  - **Tuple**: a collection of generic tuples.
 
 - **stat**
   - **win**: sliding window ![](stat/win/sliding.jpg)
