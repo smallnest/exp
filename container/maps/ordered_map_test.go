@@ -90,6 +90,25 @@ func TestOrderedMap(t *testing.T) {
 		assert.Equal(t, i, entry.Value)
 		i--
 	}
+
+	//keys
+	keys := m.Keys()
+	assert.Equal(t, 10, len(keys))
+	for i := 0; i < 10; i++ {
+		assert.Equal(t, i, keys[i])
+	}
+
+	//values
+	values := m.Values()
+	assert.Equal(t, 10, len(values))
+	for i := 0; i < 10; i++ {
+		assert.Equal(t, i, values[i])
+	}
+
+	// clone
+	m2 := m.Clone()
+	assert.Equal(t, m.Len(), m2.Len())
+	assert.True(t, Equal(m, m2))
 }
 
 func TestOrderedMap_Add(t *testing.T) {

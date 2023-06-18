@@ -253,7 +253,7 @@ func Equal[K, V comparable](m1, m2 *OrderedMap[K, V]) bool {
 		e2 = e2.Next()
 	}
 
-	if e1.Value == nil && e2.Value == nil {
+	if e1 == nil || e2 == nil {
 		return true
 	}
 

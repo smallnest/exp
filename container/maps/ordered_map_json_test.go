@@ -62,6 +62,22 @@ func TestMarshalJSON(t *testing.T) {
 		assert.Equal(t, `{"1":"bar","7":"baz","2":28,"3":100,"4":"baz"}`, string(b))
 	})
 
+	t.Run("typed int* key", func(t *testing.T) {
+		type myInt uint32
+		m := NewOrderedMap[myInt, any](5)
+		m.Set(1, int8(1))
+		m.Set(2, uint8(2))
+		m.Set(3, int16(3))
+		m.Set(4, int16(4))
+		m.Set(5, int32(5))
+		m.Set(6, uint32(6))
+		m.Set(7, int64(7))
+		m.Set(8, int64(8))
+		b, err := json.Marshal(m)
+		assert.NoError(t, err)
+		assert.Equal(t, `{"1":1,"2":2,"3":3,"4":4,"5":5,"6":6,"7":7,"8":8}`, string(b))
+	})
+
 	t.Run("empty map", func(t *testing.T) {
 		om := NewOrderedMap[string, any](0)
 
