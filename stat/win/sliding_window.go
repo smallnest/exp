@@ -55,14 +55,17 @@ func New[K Ordered, V any](window, granularity, delay time.Duration) (*Sliding[K
 }
 
 func newSliding[K Ordered, V any](window, granularity, delay time.Duration) (*Sliding[K, V], error) {
-	if window == 0 {
-		return nil, errors.New("sliding window cannot be zero")
+	if window <= 0 {
+		return nil, errors.New("sliding window must greater than zero")
 	}
-	if granularity == 0 {
-		return nil, errors.New("granularity cannot be zero")
+	if granularity <= 0 {
+		return nil, errors.New("granularity must greater than zero")
 	}
 	if window < granularity || window%granularity != 0 {
 		return nil, errors.New("window size has to be a multiplier of granularity size")
+	}
+	if delay <= 0 {
+		return nil, errors.New("delay must greater than zero")
 	}
 
 	s := &Sliding[K, V]{

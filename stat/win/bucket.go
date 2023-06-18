@@ -65,6 +65,10 @@ func (h *buckets[K, V]) Pop() *Bucket[K, V] {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
+	if len(h.bs) == 0 {
+		return nil
+	}
+
 	buckets := heap.Pop[*Bucket[K, V]](&h.bs)
 	if buckets == nil {
 		return nil

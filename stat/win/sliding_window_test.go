@@ -10,6 +10,13 @@ import (
 func TestSlidingChannel(t *testing.T) {
 	w, err := NewChanSize[int64, int](time.Second, time.Second, 5*time.Second, 100)
 	assert.NoError(t, err)
+	w.Stop()
+
+	w, err = New[int64, int](time.Second, time.Second, 5*time.Second)
+	assert.NoError(t, err)
+	w.SlidedChan = make(chan Result[int64, int], 100)
+
+	defer w.Stop()
 
 	go func() {
 		for i := 0; ; i++ {
@@ -22,7 +29,7 @@ func TestSlidingChannel(t *testing.T) {
 	n := 0
 loop:
 	for {
-		timer := time.NewTimer(6 * time.Second)
+		timer := time.NewTimer(10 * time.Second)
 		select {
 		case b := <-w.SlidedChan:
 			n++
@@ -46,4 +53,22 @@ loop:
 		}
 	}
 
+}
+
+func TestSlidingChannel_New(t *testing.T) {
+	w, err := NewChanSize[int64, int](-time.Second, time.Second, 5*time.Second, 100)
+	assert.Error(t, err)
+	assert.Nil(t, w)
+
+	w, err = NewChanSize[int64, int](time.Second, -time.Second, 5*time.Second, 100)
+	assert.Error(t, err)
+	assert.Nil(t, w)
+
+	w, err = NewChanSize[int64, int](time.Second, time.Second, -5*time.Second, 100)
+	assert.Error(t, err)
+	assert.Nil(t, w)
+
+	w, err = NewChanSize[int64, int](time.Second, 5*time.Second, -5*time.Second, 100)
+	assert.Error(t, err)
+	assert.Nil(t, w)
 }

@@ -16,7 +16,7 @@ import (
 func TestConcurrentRange(t *testing.T) {
 	const mapSize = 1 << 10
 
-	m := new(sync.Map)
+	m := Map[int64, int64]{}
 	for n := int64(1); n <= mapSize; n++ {
 		m.Store(n, int64(n))
 	}
@@ -56,8 +56,7 @@ func TestConcurrentRange(t *testing.T) {
 	for n := iters; n > 0; n-- {
 		seen := make(map[int64]bool, mapSize)
 
-		m.Range(func(ki, vi any) bool {
-			k, v := ki.(int64), vi.(int64)
+		m.Range(func(k, v int64) bool {
 			if v%k != 0 {
 				t.Fatalf("while Storing multiples of %v, Range saw value %v", k, v)
 			}
