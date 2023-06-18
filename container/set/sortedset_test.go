@@ -126,4 +126,12 @@ func TestSortedSet_Order(t *testing.T) {
 
 	expectedValues := []int{1, 2, 4, 6, 7, 8, 9, 3}
 	assert.Equal(t, expectedValues, s.Values())
+
+	e, ok := s.Oldest()
+	assert.True(t, ok)
+	assert.Equal(t, 1, e)
+
+	e, ok = s.Newest()
+	assert.True(t, ok)
+	assert.Equal(t, 3, e)
 }

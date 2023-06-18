@@ -180,6 +180,30 @@ func (s *SortedSet[E]) Do(f func(E) bool) {
 	})
 }
 
+// Oldest returns the oldest element in the set.
+func (s *SortedSet[E]) Oldest() (E, bool) {
+	m := (*maps.OrderedMap[E, struct{}])(s)
+	entry := m.Oldest()
+	if entry == nil {
+		var e E
+		return e, false
+	}
+
+	return entry.Key, true
+}
+
+// Newest returns the newest element in the set.
+func (s *SortedSet[E]) Newest() (E, bool) {
+	m := (*maps.OrderedMap[E, struct{}])(s)
+	entry := m.Newest()
+	if entry == nil {
+		var e E
+		return e, false
+	}
+
+	return entry.Key, true
+}
+
 // UnionSortedSet constructs a new set containing the union of s1 and s2.
 func UnionSortedSet[E comparable](s1, s2 *SortedSet[E]) *SortedSet[E] {
 	s := NewSortedSet[E](0)
