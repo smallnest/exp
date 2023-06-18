@@ -2,6 +2,7 @@ package maps
 
 import (
 	"encoding/json"
+	"sort"
 	"strconv"
 	"testing"
 
@@ -78,6 +79,28 @@ func TestNewBidiMap(t *testing.T) {
 		assert.Equal(t, strconv.Itoa(key), value)
 		return true
 	})
+
+	//keys
+	keys := m.Keys()
+	assert.Equal(t, 10, len(keys))
+	sort.Ints(keys)
+	for i := 0; i < 10; i++ {
+		assert.Equal(t, i, keys[i])
+	}
+
+	// values
+	values := m.Values()
+	assert.Equal(t, 10, len(values))
+	sort.Strings(values)
+	for i := 0; i < 10; i++ {
+		assert.Equal(t, strconv.Itoa(i), values[i])
+	}
+
+	// Clone
+	m2 := m.Clone()
+	assert.Equal(t, m.Len(), m2.Len())
+	assert.True(t, m.Equals(m2))
+
 }
 
 func TestBidiMap_JSON(t *testing.T) {
