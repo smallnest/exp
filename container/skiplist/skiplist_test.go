@@ -102,8 +102,18 @@ func TestInsertAndFind(t *testing.T) {
 		}
 	}
 
+	large := list.GetLargestNode().GetValue()
+	assert.Equal(t, large, maxN-1)
 }
 
+func TestString(t *testing.T) {
+	var list = New[int, int]()
+	for i := 0; i < 100; i++ {
+		list.Insert(maxN-i, maxN-i)
+	}
+
+	t.Log(list.String())
+}
 func TestDelete(t *testing.T) {
 
 	var list *SkipList[int, int]

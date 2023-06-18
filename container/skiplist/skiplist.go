@@ -513,6 +513,7 @@ func (t *SkipList[K, V]) String() string {
 
 		}
 		s += "\n"
+
 		node = node.next[0]
 	}
 
