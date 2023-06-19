@@ -22,6 +22,7 @@ Experimental packages not in std and golang.org/exp
     - **SortedSet**: generic sorted set 
   - **maps**:
     - **OrderedMap**: an insert-order map. The main code is forked [wk8/go-ordered-map](https://github.com/wk8/go-ordered-map)
+    - **AccessOrderedMap**: an access-order map.
     - **BidiMap**: a bidirectional map. 
   - **Tuple**: a collection of generic tuples.
 
