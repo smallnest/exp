@@ -11,6 +11,7 @@ Experimental packages not in std and golang.org/exp
 
 - **sync**
   - generic sync.Map: modify sync.Map to support generic
+  - phaser: a reusable synchronization barrier, similar in functionality to java.util.concurrent.Phaser
 
 - **container**
   - **heap**: generic heap
