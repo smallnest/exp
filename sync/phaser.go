@@ -91,6 +91,25 @@ func (p *Phaser) ArriveAndDeregister() int32 {
 	p.barrier.L.Lock()
 	defer p.barrier.L.Unlock()
 
+	phase := p.phase.Load()
+	currentArrived := p.arrived.Add(1)
+	if currentArrived == p.parties.Load() { // all arrived
+		p.phase.Add(1)
+		p.arrived.Store(0)
+		p.barrier.Broadcast()
+	} else {
+		// wait for phase to change in current phase
+		for phase == p.phase.Load() && p.terminated.Load() == 0 {
+			p.barrier.Wait()
+		}
+	}
+
+	p.deregister()
+
+	return p.phase.Load()
+}
+
+func (p *Phaser) deregister() int32 {
 	// deregister
 	parties := p.parties.Add(-1)
 	if parties == 0 { // is the last one, terminate this phaser
@@ -101,7 +120,14 @@ func (p *Phaser) ArriveAndDeregister() int32 {
 		p.barrier.Broadcast()
 	}
 
-	return p.phase.Load()
+	return parties
+}
+
+func (p *Phaser) Deregister() int32 {
+	p.barrier.L.Lock()
+	defer p.barrier.L.Unlock()
+
+	return p.deregister()
 }
 
 // Phase returns the current phase number.
