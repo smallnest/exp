@@ -1,6 +1,6 @@
 # exp
 
-![GitHub](https://img.shields.io/github/license/smallnest/exp) ![GitHub Action](https://github.com/smallnest/exp/actions/workflows/action.yaml/badge.svg) [![Go Report Card](https://goreportcard.com/badge/github.com/smallnest/exp)](https://goreportcard.com/report/github.com/smallnest/exp)  [![Coverage Status](https://coveralls.io/repos/github/smallnest/exp/badge.svg?branch=master)](https://coveralls.io/github/smallnest/exp?branch=master) [![GoDoc](https://godoc.org/github.com/smallnest/exp?status.png)](http://godoc.org/github.com/smallnest/exp)  
+![GitHub](https://img.shields.io/github/license/smallnest/exp) ![GitHub Action](https://github.com/smallnest/exp/actions/workflows/action.yaml/badge.svg) [![Go Report Card](https://goreportcard.com/badge/github.com/smallnest/exp)](https://goreportcard.com/report/github.com/smallnest/exp)  [![GoDoc](https://godoc.org/github.com/smallnest/exp?status.png)](http://godoc.org/github.com/smallnest/exp)  
 
 
 
@@ -11,7 +11,8 @@ Experimental packages not in std and golang.org/exp
 
 - **sync**
   - generic sync.Map: modify sync.Map to support generic
-  - phaser: a reusable synchronization barrier, similar in functionality to java.util.concurrent.Phaser
+  - Phaser: a reusable synchronization barrier, similar in functionality to java.util.concurrent.Phaser
+  - Horn: implement the observer pattern via channel
 
 - **container**
   - **heap**: generic heap
