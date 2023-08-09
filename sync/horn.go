@@ -84,9 +84,9 @@ func (h *Horn[T]) Close() {
 	}
 }
 
-// AddListener will return a listener that can be used to receive values from the
+// Listen will return a new listener that can be used to receive values from the
 // horn. The listener will be closed when the horn is closed.
-func (h *Horn[T]) AddListener() *Listener[T] {
+func (h *Horn[T]) Listen() *Listener[T] {
 	h.m.Lock()
 	defer h.m.Unlock()
 
@@ -109,12 +109,6 @@ func (h *Horn[T]) AddListener() *Listener[T] {
 		ch: ch,
 		h:  h,
 	}
-}
-
-// RemoveListener will remove the listener from the horn.
-// it is equivalent to calling l.Stop().
-func (h *Horn[T]) RemoveListener(l *Listener[T]) {
-	l.Stop()
 }
 
 // Listener is a handle to a horn listener.

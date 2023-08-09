@@ -21,7 +21,7 @@ func TestHorn(t *testing.T) {
 		go func() {
 			defer allDone.Done()
 
-			l := h.AddListener()
+			l := h.Listen()
 			wg.Done()
 			for _ = range l.Chan() {
 				// t.Logf("received %d", v)
