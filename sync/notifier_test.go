@@ -6,8 +6,8 @@ import (
 	"testing"
 )
 
-func TestHorn(t *testing.T) {
-	h := NewHorn[int](10)
+func TestNotifier(t *testing.T) {
+	h := NewNotifier[int](10)
 
 	var count atomic.Int64
 	// create listeners
@@ -23,7 +23,7 @@ func TestHorn(t *testing.T) {
 
 			l := h.Listen()
 			wg.Done()
-			for _ = range l.Chan() {
+			for range l.Chan() {
 				// t.Logf("received %d", v)
 				count.Add(1)
 			}

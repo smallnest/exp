@@ -7,11 +7,12 @@ import (
 
 // Phaser is a reusable synchronization barrier, similar in functionality to java Phaser.
 type Phaser struct {
-	parties    atomic.Int32
-	arrived    atomic.Int32
-	phase      atomic.Int32
-	barrier    *sync.Cond
-	terminated atomic.Int32
+	parties      atomic.Int32
+	arrived      atomic.Int32
+	phase        atomic.Int32
+	barrier      *sync.Cond
+	arriveAction func(parties int32) error
+	terminated   atomic.Int32
 }
 
 // NewPhaser creates a new Phaser instance.
@@ -19,6 +20,15 @@ func NewPhaser(parties int32) *Phaser {
 	var p Phaser
 	p.parties.Store(parties)
 	p.barrier = sync.NewCond(&sync.Mutex{})
+	return &p
+}
+
+func NewPhaserWithAction(parties int32, arriveAction func(parties int32) error) *Phaser {
+	var p Phaser
+	p.parties.Store(parties)
+	p.barrier = sync.NewCond(&sync.Mutex{})
+	p.arriveAction = arriveAction
+
 	return &p
 }
 
@@ -49,6 +59,10 @@ func (p *Phaser) Arrive() int32 {
 	if currentArrived == p.parties.Load() { // all arrived
 		p.phase.Add(1)
 		p.arrived.Store(0)
+		// call arrive action if it is nil and broadcast
+		if p.arriveAction != nil {
+			p.arriveAction(p.parties.Load())
+		}
 		p.barrier.Broadcast()
 	}
 
@@ -80,6 +94,10 @@ func (p *Phaser) ArriveAndWait() int32 {
 	if currentArrived == p.parties.Load() { // all arrived
 		p.phase.Add(1)
 		p.arrived.Store(0)
+		// call arrive action if it is nil and broadcast
+		if p.arriveAction != nil {
+			p.arriveAction(p.parties.Load())
+		}
 		p.barrier.Broadcast()
 	} else {
 		// wait for phase to change in current phase
@@ -102,6 +120,10 @@ func (p *Phaser) ArriveAndLeave() int32 {
 	if currentArrived == p.parties.Load() { // all arrived
 		p.phase.Add(1)
 		p.arrived.Store(0)
+		// call arrive action if it is nil and broadcast
+		if p.arriveAction != nil {
+			p.arriveAction(p.parties.Load())
+		}
 		p.barrier.Broadcast()
 	} else {
 		// wait for phase to change in current phase

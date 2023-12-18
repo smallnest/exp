@@ -11,7 +11,7 @@ import (
 // ErrClosedChannel is returned when a send is attempted on a closed channel.
 var ErrClosedChannel = errors.New("send after close")
 
-type Horn[T any] struct {
+type Notifier[T any] struct {
 	m              sync.RWMutex
 	listeners      map[uint64]chan<- T
 	nextListenerID uint64
@@ -19,14 +19,14 @@ type Horn[T any] struct {
 	closed         bool
 }
 
-func NewHorn[T any](n int) *Horn[T] {
-	return &Horn[T]{capacity: n}
+func NewNotifier[T any](n int) *Notifier[T] {
+	return &Notifier[T]{capacity: n}
 }
 
 // SendNonblocking will send the value to all listeners. If a listener is not
 // ready to receive the value, it will be skipped. If the horn is closed, an
 // error will be returned.
-func (h *Horn[T]) SendNonblocking(v T) error {
+func (h *Notifier[T]) SendNonblocking(v T) error {
 	h.m.Lock()
 	defer h.m.Unlock()
 
@@ -51,7 +51,7 @@ func (h *Horn[T]) SendNonblocking(v T) error {
 // Send will send the value to all listeners. If a listener is not ready to
 // receive the value, it will be blocked. If the horn is closed, an error will
 // be returned.
-func (h *Horn[T]) Send(v T) error {
+func (h *Notifier[T]) Send(v T) error {
 	h.m.RLock()
 	defer h.m.RUnlock()
 
@@ -70,7 +70,7 @@ func (h *Horn[T]) Send(v T) error {
 
 // Close will close the horn and all listeners will be closed. Any subsequent
 // calls to Send will return an error.
-func (h *Horn[T]) Close() {
+func (h *Notifier[T]) Close() {
 	h.m.Lock()
 	defer h.m.Unlock()
 
@@ -86,7 +86,7 @@ func (h *Horn[T]) Close() {
 
 // Listen will return a new listener that can be used to receive values from the
 // horn. The listener will be closed when the horn is closed.
-func (h *Horn[T]) Listen() *Listener[T] {
+func (h *Notifier[T]) Listen() *Listener[T] {
 	h.m.Lock()
 	defer h.m.Unlock()
 
@@ -115,7 +115,7 @@ func (h *Horn[T]) Listen() *Listener[T] {
 type Listener[T any] struct {
 	id uint64
 	ch <-chan T
-	h  *Horn[T]
+	h  *Notifier[T]
 }
 
 // Stop will stop listening to the horn.
