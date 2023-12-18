@@ -28,8 +28,5 @@ Experimental packages not in std and golang.org/exp
     - **BidiMap**: a bidirectional map. 
   - **Tuple**: a collection of generic tuples.
 
-- **stat**
-  - **win**: sliding window ![](stat/win/sliding.jpg)
-
 - **chanx**
   - **Batch**: batch get from channels efficiently
