@@ -3,6 +3,7 @@ package chanx
 import (
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -41,4 +42,25 @@ func TestBatch(t *testing.T) {
 		wg.Done()
 	})
 	wg.Wait()
+}
+
+func TestFlatBatch(t *testing.T) {
+	ch := make(chan []int, 10)
+	for i := 0; i < 10; i++ {
+		ch <- []int{i, i}
+	}
+
+	go FlatBatch[int](ch, 5, func(batch []int) {
+		assert.NotEmpty(t, batch)
+	})
+	time.Sleep(time.Second)
+
+	for i := 0; i < 10; i++ {
+		ch <- []int{i, i}
+	}
+
+	go FlatBatch[int](ch, 3, func(batch []int) {
+		assert.NotEmpty(t, batch)
+	})
+	time.Sleep(time.Second)
 }
