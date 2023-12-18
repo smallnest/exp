@@ -30,3 +30,6 @@ Experimental packages not in std and golang.org/exp
 
 - **stat**
   - **win**: sliding window ![](stat/win/sliding.jpg)
+
+- **chanx**
+  - **Batch**: batch get from channels efficiently
