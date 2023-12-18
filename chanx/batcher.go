@@ -11,7 +11,6 @@ func Batch[T any](ch <-chan T, batchSize int, fn func([]T)) {
 	}
 
 	// batchSize > 1
-
 	var batch = make([]T, 0, batchSize)
 	for {
 		select {
