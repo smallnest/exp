@@ -17,14 +17,14 @@ func TestPhaser(t *testing.T) {
 	wg.Add(3)
 
 	for i := 0; i < 3; i++ {
-		phaser.Register()
+		phaser.Join()
 		go func(id int) {
 			defer wg.Done()
 
 			t.Logf("goroutine %d started\n", id)
 
 			// phase == 0
-			phase := phaser.ArriveAndAwaitAdvance()
+			phase := phaser.ArriveAndWait()
 			assert.Equal(t, int32(1), phase)
 			t.Logf("goroutine %d finished phase 0\n", id)
 
@@ -33,9 +33,9 @@ func TestPhaser(t *testing.T) {
 			// phase == 1
 			assert.Equal(t, int32(1), phaser.Phase())
 			if i == 1 {
-				phase = phaser.ArriveAndDeregister()
+				phase = phaser.ArriveAndLeave()
 			} else {
-				phase = phaser.ArriveAndAwaitAdvance()
+				phase = phaser.ArriveAndWait()
 				t.Logf("goroutine %d finished phase %d and deregistered\n", phase, id)
 				return
 			}
@@ -45,7 +45,7 @@ func TestPhaser(t *testing.T) {
 
 			time.Sleep(time.Duration(rand.Intn(10) * int(time.Second)))
 
-			phaser.ArriveAndAwaitAdvance()
+			phaser.ArriveAndWait()
 			assert.Equal(t, int32(2), phase)
 			t.Logf("goroutine %d finished phase 2\n", id)
 		}(i)
@@ -67,19 +67,19 @@ func TestPhaser_phase(t *testing.T) {
 	wg.Add(3)
 
 	for i := 0; i < 3; i++ {
-		phaser.Register()
+		phaser.Join()
 		go func(id int) {
 			defer wg.Done()
 
 			t.Logf("goroutine %d started\n", id)
 
 			// phase == 0
-			phase := phaser.ArriveAndAwaitAdvance()
+			phase := phaser.ArriveAndWait()
 			assert.Equal(t, int32(1), phase)
 			t.Logf("goroutine %d finished phase 0\n", id)
 
 			if id == 1 {
-				phaser.Deregister()
+				phaser.Leave()
 				t.Logf("goroutine %d exit after phase 0\n", id)
 				return
 			}
@@ -88,13 +88,13 @@ func TestPhaser_phase(t *testing.T) {
 
 			// phase == 1
 			assert.Equal(t, int32(1), phaser.Phase())
-			phase = phaser.ArriveAndAwaitAdvance()
+			phase = phaser.ArriveAndWait()
 			assert.Equal(t, int32(2), phase)
 			t.Logf("goroutine %d finished phase 1\n", id)
 
 			time.Sleep(time.Duration(rand.Intn(10) * int(time.Second)))
 
-			phaser.ArriveAndAwaitAdvance()
+			phaser.ArriveAndWait()
 			assert.Equal(t, int32(2), phase)
 			t.Logf("goroutine %d finished phase 2 and deregistered\n", id)
 		}(i)

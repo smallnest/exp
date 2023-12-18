@@ -22,15 +22,18 @@ func NewPhaser(parties int32) *Phaser {
 	return &p
 }
 
-// Register adds a new party to this phaser.
-func (p *Phaser) Register() int32 {
+// Join adds a new party to this phaser.
+// Just like java.util.concurrent.Phaser's register() method.
+func (p *Phaser) Join() int32 {
 	p.barrier.L.Lock()
 	defer p.barrier.L.Unlock()
 
 	return p.parties.Add(1)
 }
 
-func (p *Phaser) BulkRegister(parties int32) int32 {
+// BulkJoin adds a number of new parties to this phaser.
+// Just like java.util.concurrent.Phaser's bulkRegister(int parties) method.
+func (p *Phaser) BulkJoin(parties int32) int32 {
 	p.barrier.L.Lock()
 	defer p.barrier.L.Unlock()
 
@@ -52,9 +55,10 @@ func (p *Phaser) Arrive() int32 {
 	return p.phase.Load()
 }
 
-// AwaitAdvance awaits the phase of this phaser to advance from the given phase value,
+// Wait awaits the phase of this phaser to advance from the given phase value,
 // returning immediately if the current phase is not equal to the given phase value or this phaser is terminated.
-func (p *Phaser) AwaitAdvance(phase int) int32 {
+// Just like java.util.concurrent.Phaser's awaitAdvance(int phase) method.
+func (p *Phaser) Wait(phase int) int32 {
 	p.barrier.L.Lock()
 	defer p.barrier.L.Unlock()
 
@@ -65,8 +69,9 @@ func (p *Phaser) AwaitAdvance(phase int) int32 {
 	return p.phase.Load()
 }
 
-// ArriveAndAwaitAdvance arrives at this phaser and awaits others.
-func (p *Phaser) ArriveAndAwaitAdvance() int32 {
+// ArriveAndWait arrives at this phaser and waits others.
+// Just like java.util.concurrent.Phaser's arriveAndAwaitAdvance() method.
+func (p *Phaser) ArriveAndWait() int32 {
 	p.barrier.L.Lock()
 	defer p.barrier.L.Unlock()
 
@@ -86,8 +91,9 @@ func (p *Phaser) ArriveAndAwaitAdvance() int32 {
 	return p.phase.Load()
 }
 
-// ArriveAndDeregister arrives at this phaser and deregisters from it without waiting for others to arrive.
-func (p *Phaser) ArriveAndDeregister() int32 {
+// ArriveAndLeave arrives at this phaser and leaves from it without waiting for others to arrive.
+// Just like java.util.concurrent.Phaser's arriveAndDeregister() method.
+func (p *Phaser) ArriveAndLeave() int32 {
 	p.barrier.L.Lock()
 	defer p.barrier.L.Unlock()
 
@@ -104,13 +110,13 @@ func (p *Phaser) ArriveAndDeregister() int32 {
 		}
 	}
 
-	p.deregister()
+	p.leave()
 
 	return p.phase.Load()
 }
 
-func (p *Phaser) deregister() int32 {
-	// deregister
+func (p *Phaser) leave() int32 {
+	// leave this phaser
 	parties := p.parties.Add(-1)
 	if parties == 0 { // is the last one, terminate this phaser
 		p.parties.Store(0)
@@ -123,11 +129,13 @@ func (p *Phaser) deregister() int32 {
 	return parties
 }
 
-func (p *Phaser) Deregister() int32 {
+// Leave leaves from this phaser without waiting for others to arrive.
+// Just like java.util.concurrent.Phaser's deregister() method.
+func (p *Phaser) Leave() int32 {
 	p.barrier.L.Lock()
 	defer p.barrier.L.Unlock()
 
-	return p.deregister()
+	return p.leave()
 }
 
 // Phase returns the current phase number.
@@ -138,6 +146,11 @@ func (p *Phaser) Phase() int32 {
 // Phase returns the current phase number.
 func (p *Phaser) Arrived() int32 {
 	return p.arrived.Load()
+}
+
+// Parties returns the number of parties joined in this phaser.
+func (p *Phaser) Parties() int32 {
+	return p.parties.Load()
 }
 
 // ForceTermination forces this phaser to enter termination state.
