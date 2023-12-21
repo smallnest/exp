@@ -12,7 +12,7 @@ Experimental packages not in std and golang.org/exp
 - **sync**
   - generic sync.Map: modify sync.Map to support generic
   - Phaser: a reusable synchronization barrier, similar in functionality to java.util.concurrent.Phaser
-  - Horn: implement the observer pattern via channel
+  - Notifier: implement the observer pattern via channel
 
 - **container**
   - **heap**: generic heap
