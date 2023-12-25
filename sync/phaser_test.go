@@ -17,8 +17,9 @@ func TestPhaser(t *testing.T) {
 	wg.Add(3)
 
 	for i := 0; i < 3; i++ {
+		id := i
 		phaser.Join()
-		go func(id int) {
+		go func() {
 			defer wg.Done()
 
 			t.Logf("goroutine %d started\n", id)
@@ -28,27 +29,27 @@ func TestPhaser(t *testing.T) {
 			assert.Equal(t, int32(1), phase)
 			t.Logf("goroutine %d finished phase 0\n", id)
 
-			time.Sleep(time.Duration(rand.Intn(10) * int(time.Second)))
+			time.Sleep(time.Duration(rand.Intn(100) * int(time.Millisecond)))
 
 			// phase == 1
 			assert.Equal(t, int32(1), phaser.Phase())
-			if i == 1 {
+			if id == 1 {
 				phase = phaser.ArriveAndLeave()
-			} else {
-				phase = phaser.ArriveAndWait()
 				t.Logf("goroutine %d finished phase %d and deregistered\n", phase, id)
 				return
+			} else {
+				phase = phaser.ArriveAndWait()
 			}
 
 			assert.Equal(t, int32(2), phase)
 			t.Logf("goroutine %d finished phase 1\n", id)
 
-			time.Sleep(time.Duration(rand.Intn(10) * int(time.Second)))
+			time.Sleep(time.Duration(rand.Intn(100) * int(time.Millisecond)))
 
 			phaser.ArriveAndWait()
 			assert.Equal(t, int32(2), phase)
 			t.Logf("goroutine %d finished phase 2\n", id)
-		}(i)
+		}()
 	}
 
 	wg.Wait()
@@ -84,7 +85,7 @@ func TestPhaser_phase(t *testing.T) {
 				return
 			}
 
-			time.Sleep(time.Duration(rand.Intn(10) * int(time.Second)))
+			time.Sleep(time.Duration(rand.Intn(100) * int(time.Millisecond)))
 
 			// phase == 1
 			assert.Equal(t, int32(1), phaser.Phase())
@@ -92,7 +93,7 @@ func TestPhaser_phase(t *testing.T) {
 			assert.Equal(t, int32(2), phase)
 			t.Logf("goroutine %d finished phase 1\n", id)
 
-			time.Sleep(time.Duration(rand.Intn(10) * int(time.Second)))
+			time.Sleep(time.Duration(rand.Intn(100) * int(time.Millisecond)))
 
 			phaser.ArriveAndWait()
 			assert.Equal(t, int32(2), phase)
