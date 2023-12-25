@@ -55,7 +55,6 @@ func Batch[T any](ctx context.Context, ch <-chan T, batchSize int, fn func([]T))
 			}
 		}
 	}
-
 }
 
 // FlatBatch reads from a channel of slices, flats values, and calls fn with a slice of batchSize.
