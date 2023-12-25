@@ -40,9 +40,6 @@ func Batch[T any](ctx context.Context, ch <-chan T, batchSize int, fn func([]T))
 				// wait for more
 				select {
 				case <-ctx.Done():
-					if len(batch) > 0 {
-						fn(batch)
-					}
 					return
 				case v, ok := <-ch:
 					if !ok {
