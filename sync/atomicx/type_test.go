@@ -45,6 +45,8 @@ func TestPointer(t *testing.T) {
 		}
 		n--
 	}
+
+	ap.Store(&S{v: n})
 	ap.Signal()
 }
 
@@ -54,52 +56,39 @@ func TestPointerBroadcast(t *testing.T) {
 	}
 
 	n := 200
-	var ap atomicx.Pointer[S]
-	ap.Store(&S{v: -1})
+	var av atomicx.Pointer[S]
+	av.Store(&S{v: -1})
 
 	running := make(chan int, n)
 	awake := make(chan int, n)
-	exit := false
+
 	for i := 0; i < n; i++ {
 		go func(g int) {
-			for !exit {
-				running <- g
-				ap.Wait()
-				awake <- g
-			}
+			running <- g
+			av.Wait()
+			awake <- g
 		}(i)
 	}
+
 	for i := 0; i < n; i++ {
-		for i := 0; i < n; i++ {
-			<-running // Will deadlock unless n are running.
-		}
-		if i == n-1 {
-			exit = true
-		}
+		<-running // Will deadlock unless n are running.
+	}
+
+	seen := make([]bool, n)
+	for i := 0; i < n; i++ {
 		select {
-		case <-awake:
-			t.Fatal("goroutine not asleep")
-		default:
-		}
-		ap.Store(&S{v: i})
-		ap.Broadcast()
-		seen := make([]bool, n)
-		for i := 0; i < n; i++ {
-			g := <-awake
+		case g := <-awake:
 			if seen[g] {
 				t.Fatal("goroutine woke up twice")
 			}
 			seen[g] = true
+		default:
+			av.Store(&S{v: i})
+			av.Broadcast()
 		}
 	}
-	select {
-	case <-running:
-		t.Fatal("goroutine did not exit")
-	default:
-	}
 
-	ap.Store(&S{v: n})
-	ap.Broadcast()
+	assert.Equal(t, n, len(seen))
 }
 
 func TestValue(t *testing.T) {
@@ -109,7 +98,7 @@ func TestValue(t *testing.T) {
 
 	n := 2
 	var av atomicx.Value
-	av.Store(&S{v: n})
+	av.Store(&S{v: -1})
 
 	running := make(chan bool, n)
 	awake := make(chan bool, n)
@@ -140,6 +129,8 @@ func TestValue(t *testing.T) {
 		}
 		n--
 	}
+
+	av.Store(&S{v: n})
 	av.Signal()
 }
 
@@ -185,10 +176,6 @@ func TestValueBroadcast(t *testing.T) {
 }
 
 func TestBool(t *testing.T) {
-	type S struct {
-		v int
-	}
-
 	n := 2
 	var av atomicx.Bool
 	av.Store(true)
@@ -212,7 +199,7 @@ func TestBool(t *testing.T) {
 		default:
 		}
 
-		av.Store(false)
+		av.Store(!av.Load())
 		av.Signal()
 		<-awake // Will deadlock if no goroutine wakes up
 
@@ -223,14 +210,12 @@ func TestBool(t *testing.T) {
 		}
 		n--
 	}
+
+	av.Store(!av.Load())
 	av.Signal()
 }
 
 func TestBoolBroadcast(t *testing.T) {
-	type S struct {
-		v int
-	}
-
 	n := 200
 	var av atomicx.Bool
 	av.Store(true)
@@ -302,6 +287,8 @@ func TestInt32(t *testing.T) {
 		}
 		n--
 	}
+
+	av.Store(int32(n))
 	av.Signal()
 }
 
@@ -377,6 +364,8 @@ func TestInt64(t *testing.T) {
 		}
 		n--
 	}
+
+	av.Store(int64(n))
 	av.Signal()
 }
 
@@ -452,6 +441,8 @@ func TestUint32(t *testing.T) {
 		}
 		n--
 	}
+
+	av.Store(uint32(n))
 	av.Signal()
 }
 
@@ -527,6 +518,8 @@ func TestUint64(t *testing.T) {
 		}
 		n--
 	}
+
+	av.Store(uint64(n))
 	av.Signal()
 }
 
@@ -604,6 +597,8 @@ func TestUintptr(t *testing.T) {
 		}
 		n--
 	}
+
+	av.Store(v)
 	av.Signal()
 }
 

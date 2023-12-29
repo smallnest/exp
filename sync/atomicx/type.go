@@ -15,14 +15,14 @@ type Pointer[T any] struct {
 
 // Wait blocks until the pointer is not equal to the given value.
 func (ap *Pointer[T]) Wait() {
+	old := ap.Load()
+
 	ap.mu.Lock()
 	defer ap.mu.Unlock()
 
 	if ap.condvar == nil {
 		ap.condvar = sync.NewCond(&ap.mu)
 	}
-
-	old := ap.Load()
 
 	for old == ap.Load() {
 		ap.condvar.Wait()
@@ -63,6 +63,8 @@ type Bool struct {
 
 // Wait blocks until the boolean is not equal to the given value.
 func (ab *Bool) Wait() {
+	v := ab.Load()
+
 	ab.mu.Lock()
 	defer ab.mu.Unlock()
 
@@ -70,7 +72,6 @@ func (ab *Bool) Wait() {
 		ab.condvar = sync.NewCond(&ab.mu)
 	}
 
-	v := ab.Load()
 	for ab.Load() == v {
 		ab.condvar.Wait()
 	}
@@ -110,6 +111,8 @@ type Int32 struct {
 
 // Wait blocks until the int32 is not equal to the given value.
 func (ai *Int32) Wait() {
+	v := ai.Load()
+
 	ai.mu.Lock()
 	defer ai.mu.Unlock()
 
@@ -117,7 +120,6 @@ func (ai *Int32) Wait() {
 		ai.condvar = sync.NewCond(&ai.mu)
 	}
 
-	v := ai.Load()
 	for ai.Load() == v {
 		ai.condvar.Wait()
 	}
@@ -157,6 +159,8 @@ type Int64 struct {
 
 // Wait blocks until the int64 is not equal to the given value.
 func (ai *Int64) Wait() {
+	v := ai.Load()
+
 	ai.mu.Lock()
 	defer ai.mu.Unlock()
 
@@ -164,7 +168,6 @@ func (ai *Int64) Wait() {
 		ai.condvar = sync.NewCond(&ai.mu)
 	}
 
-	v := ai.Load()
 	for ai.Load() == v {
 		ai.condvar.Wait()
 	}
@@ -204,6 +207,8 @@ type Uint32 struct {
 
 // Wait blocks until the uint32 is not equal to the given value.
 func (au *Uint32) Wait() {
+	v := au.Load()
+
 	au.mu.Lock()
 	defer au.mu.Unlock()
 
@@ -211,7 +216,6 @@ func (au *Uint32) Wait() {
 		au.condvar = sync.NewCond(&au.mu)
 	}
 
-	v := au.Load()
 	for au.Load() == v {
 		au.condvar.Wait()
 	}
@@ -251,6 +255,8 @@ type Uint64 struct {
 
 // Wait blocks until the uint64 is not equal to the given value.
 func (au *Uint64) Wait() {
+	v := au.Load()
+
 	au.mu.Lock()
 	defer au.mu.Unlock()
 
@@ -258,7 +264,6 @@ func (au *Uint64) Wait() {
 		au.condvar = sync.NewCond(&au.mu)
 	}
 
-	v := au.Load()
 	for au.Load() == v {
 		au.condvar.Wait()
 	}
@@ -298,6 +303,8 @@ type Uintptr struct {
 
 // Wait blocks until the uintptr is not equal to the given value.
 func (au *Uintptr) Wait() {
+	v := au.Load()
+
 	au.mu.Lock()
 	defer au.mu.Unlock()
 
@@ -305,7 +312,6 @@ func (au *Uintptr) Wait() {
 		au.condvar = sync.NewCond(&au.mu)
 	}
 
-	v := au.Load()
 	for au.Load() == v {
 		au.condvar.Wait()
 	}
@@ -345,6 +351,8 @@ type Value struct {
 
 // Wait blocks until the value is not equal to the given value.
 func (av *Value) Wait() {
+	v := av.Load()
+
 	av.mu.Lock()
 	defer av.mu.Unlock()
 
@@ -352,7 +360,6 @@ func (av *Value) Wait() {
 		av.condvar = sync.NewCond(&av.mu)
 	}
 
-	v := av.Load()
 	for av.Load() == v {
 		av.condvar.Wait()
 	}
