@@ -10,9 +10,18 @@ Experimental packages not in std and golang.org/exp
 ## packages
 
 - **sync**
-  - generic sync.Map: modify sync.Map to support generic
-  - Phaser: a reusable synchronization barrier, similar in functionality to java.util.concurrent.Phaser
-  - Notifier: implement the observer pattern via channel
+  - **generic sync.Map**: modify sync.Map to support generic
+  - **Phaser**: a reusable synchronization barrier, similar in functionality to java.util.concurrent.Phaser
+  - **Notifier**: implement the observer pattern via channel
+  - **atomicx**: add C++ 20 atomic wait/notify feature for go std atomic
+    - Pointer[T]
+    - Value
+    - Uintptr
+    - Bool
+    - Int32
+    - Int64
+    - Uint32
+    - Uint64
 
 - **container**
   - **heap**: generic heap
