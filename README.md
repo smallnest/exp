@@ -13,6 +13,7 @@ Experimental packages not in std and golang.org/exp
   - **generic sync.Map**: modify sync.Map to support generic
   - **Phaser**: a reusable synchronization barrier, similar in functionality to java.util.concurrent.Phaser
   - **Notifier**: implement the observer pattern via channel
+  - **Shard**: a sharding data structure with lock-free read and write
   - **atomicx** (developping): add C++ 20 atomic wait/notify feature for go std atomic
     - Pointer[T]
     - Value
