@@ -37,10 +37,10 @@ func (s *Shard[T]) Get() *T {
 	return &s.values[int(goroutine.PID())%len(s.values)].v
 }
 
-// Each calls f for all data of type T in Shard.
+// Range calls f for all data of type T in Shard.
 //
 // It is not goroutine-safe to modify the Shard while iterating.
-func (s *Shard[T]) Each(f func(*T)) {
+func (s *Shard[T]) Range(f func(*T)) {
 	if len(s.values) == 0 {
 		panic("sync: Sharded is empty and has not been initialized")
 	}
