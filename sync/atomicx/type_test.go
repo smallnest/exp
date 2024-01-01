@@ -2,6 +2,7 @@ package atomicx_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/smallnest/exp/sync/atomicx"
 	"github.com/stretchr/testify/assert"
@@ -18,6 +19,8 @@ func TestPointer(t *testing.T) {
 
 	running := make(chan bool, n)
 	awake := make(chan bool, n)
+
+	//start n goroutines
 	for i := 0; i < n; i++ {
 		go func() {
 			running <- true
@@ -25,9 +28,14 @@ func TestPointer(t *testing.T) {
 			awake <- true
 		}()
 	}
+
 	for i := 0; i < n; i++ {
 		<-running // Wait for everyone to run.
 	}
+
+	// I hate this sleep
+	time.Sleep(time.Second)
+
 	for n > 0 {
 		select {
 		case <-awake:
@@ -74,6 +82,9 @@ func TestPointerBroadcast(t *testing.T) {
 		<-running // Will deadlock unless n are running.
 	}
 
+	// I hate this sleep
+	time.Sleep(time.Second)
+
 	seen := make([]bool, n)
 	for i := 0; i < n; i++ {
 		select {
@@ -112,6 +123,10 @@ func TestValue(t *testing.T) {
 	for i := 0; i < n; i++ {
 		<-running // Wait for everyone to run.
 	}
+
+	// I hate this sleep
+	time.Sleep(time.Second)
+
 	for n > 0 {
 		select {
 		case <-awake:
@@ -158,6 +173,9 @@ func TestValueBroadcast(t *testing.T) {
 		<-running // Will deadlock unless n are running.
 	}
 
+	// I hate this sleep
+	time.Sleep(time.Second)
+
 	seen := make([]bool, n)
 	for i := 0; i < n; i++ {
 		select {
@@ -192,6 +210,9 @@ func TestBool(t *testing.T) {
 	for i := 0; i < n; i++ {
 		<-running // Wait for everyone to run.
 	}
+	// I hate this sleep
+	time.Sleep(time.Second)
+
 	for n > 0 {
 		select {
 		case <-awake:
@@ -199,7 +220,7 @@ func TestBool(t *testing.T) {
 		default:
 		}
 
-		av.Store(!av.Load())
+		av.Store(false)
 		av.Signal()
 		<-awake // Will deadlock if no goroutine wakes up
 
@@ -235,6 +256,9 @@ func TestBoolBroadcast(t *testing.T) {
 		<-running // Will deadlock unless n are running.
 	}
 
+	// I hate this sleep
+	time.Sleep(time.Second)
+
 	seen := make([]bool, n)
 	for i := 0; i < n; i++ {
 		select {
@@ -269,6 +293,10 @@ func TestInt32(t *testing.T) {
 	for i := 0; i < n; i++ {
 		<-running // Wait for everyone to run.
 	}
+
+	// I hate this sleep
+	time.Sleep(time.Second)
+
 	for n > 0 {
 		select {
 		case <-awake:
@@ -312,6 +340,9 @@ func TestInt32Broadcast(t *testing.T) {
 		<-running // Will deadlock unless n are running.
 	}
 
+	// I hate this sleep
+	time.Sleep(time.Second)
+
 	seen := make([]bool, n)
 	for i := 0; i < n; i++ {
 		select {
@@ -346,6 +377,10 @@ func TestInt64(t *testing.T) {
 	for i := 0; i < n; i++ {
 		<-running // Wait for everyone to run.
 	}
+
+	// I hate this sleep
+	time.Sleep(time.Second)
+
 	for n > 0 {
 		select {
 		case <-awake:
@@ -389,6 +424,9 @@ func TestInt64Broadcast(t *testing.T) {
 		<-running // Will deadlock unless n are running.
 	}
 
+	// I hate this sleep
+	time.Sleep(time.Second)
+
 	seen := make([]bool, n)
 	for i := 0; i < n; i++ {
 		select {
@@ -423,6 +461,10 @@ func TestUint32(t *testing.T) {
 	for i := 0; i < n; i++ {
 		<-running // Wait for everyone to run.
 	}
+
+	// I hate this sleep
+	time.Sleep(time.Second)
+
 	for n > 0 {
 		select {
 		case <-awake:
@@ -466,6 +508,9 @@ func TestUint32Broadcast(t *testing.T) {
 		<-running // Will deadlock unless n are running.
 	}
 
+	// I hate this sleep
+	time.Sleep(time.Second)
+
 	seen := make([]bool, n)
 	for i := 0; i < n; i++ {
 		select {
@@ -500,6 +545,10 @@ func TestUint64(t *testing.T) {
 	for i := 0; i < n; i++ {
 		<-running // Wait for everyone to run.
 	}
+
+	// I hate this sleep
+	time.Sleep(time.Second)
+
 	for n > 0 {
 		select {
 		case <-awake:
@@ -543,6 +592,9 @@ func TestUint64Broadcast(t *testing.T) {
 		<-running // Will deadlock unless n are running.
 	}
 
+	// I hate this sleep
+	time.Sleep(time.Second)
+
 	seen := make([]bool, n)
 	for i := 0; i < n; i++ {
 		select {
@@ -578,6 +630,10 @@ func TestUintptr(t *testing.T) {
 	for i := 0; i < n; i++ {
 		<-running // Wait for everyone to run.
 	}
+
+	// I hate this sleep
+	time.Sleep(time.Second)
+
 	for n > 0 {
 		select {
 		case <-awake:
@@ -623,6 +679,9 @@ func TestUintptrBroadcast(t *testing.T) {
 	for i := 0; i < n; i++ {
 		<-running // Will deadlock unless n are running.
 	}
+
+	// I hate this sleep
+	time.Sleep(time.Second)
 
 	seen := make([]bool, n)
 	for i := 0; i < n; i++ {
