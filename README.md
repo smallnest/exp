@@ -15,6 +15,7 @@ Experimental packages not in std and golang.org/exp
   - **Notifier**: implement the observer pattern via channel
   - **Shard**: a sharding data structure with lock-free read and write
   - **TaskGroup**: TaskGroup is related to `sync.WaitGroup` and `errgroup.Group` but it can control return or not in case of first error occurs and supports parent context cancel and WaitTimeout.
+  - **Exchanger**: a synchronization point at which goroutines can pair and swap elements within pairs. Each goroutine presents some object on entry to the exchange method, matches with a partner goroutine, and receives its partner's object on return. An Exchanger may be viewed as a bidirectional form of a channel.
   - **atomicx**: add C++ 20 atomic wait/notify feature for go std atomic
     - Pointer[T]
     - Value
