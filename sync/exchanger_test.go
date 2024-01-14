@@ -1,6 +1,8 @@
 package sync_test
 
 import (
+	"bytes"
+	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -8,6 +10,54 @@ import (
 	syncx "github.com/smallnest/exp/sync"
 	"github.com/stretchr/testify/assert"
 )
+
+func ExampleExchanger() {
+	buf1 := bytes.NewBuffer(make([]byte, 1024))
+	buf2 := bytes.NewBuffer(make([]byte, 1024))
+
+	exchanger := syncx.NewExchanger[*bytes.Buffer]()
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	expect := 0
+	go func() {
+		defer wg.Done()
+
+		buf := buf1
+		for i := 0; i < 10; i++ {
+			for j := 0; j < 1024; j++ {
+				buf.WriteByte(byte(j / 256))
+				expect += j / 256
+			}
+
+			buf = exchanger.Exchange(buf)
+		}
+	}()
+
+	var got int
+	go func() {
+		defer wg.Done()
+
+		buf := buf2
+		for i := 0; i < 10; i++ {
+			buf = exchanger.Exchange(buf)
+			for _, b := range buf.Bytes() {
+				got += int(b)
+			}
+			buf.Reset()
+		}
+	}()
+
+	wg.Wait()
+
+	fmt.Println(got)
+	fmt.Println(expect == got)
+
+	// Output:
+	// 15360
+	// true
+}
 
 func TestExchanger(t *testing.T) {
 	exchanger := syncx.NewExchanger[int]()
