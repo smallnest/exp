@@ -72,7 +72,7 @@ func (e *Exchanger[T]) Exchange(value T) T {
 //
 // It panics if called from neither left nor right goroutine.
 // If the other goroutine has not called Exchange yet, it blocks until timeout.
-func (e *Exchanger[T]) ExchangeTimeout(value T, timeout time.Duration) (T, bool) {
+func (e *Exchanger[T]) ExchangeTimeout(value T, timeout time.Duration) (v T, sent, exchanged bool) {
 	goid := goroutine.ID()
 
 	// left goroutine
@@ -86,16 +86,16 @@ func (e *Exchanger[T]) ExchangeTimeout(value T, timeout time.Duration) (T, bool)
 		select {
 		case <-timer.C:
 			var t T
-			return t, false
+			return t, false, false
 		case e.right <- value: // send value to right
 		}
 
 		select {
 		case <-time.After(timeout):
 			var t T
-			return t, false
+			return t, true, false
 		case v := <-e.left:
-			return v, true
+			return v, true, true
 		}
 	}
 
@@ -111,17 +111,44 @@ func (e *Exchanger[T]) ExchangeTimeout(value T, timeout time.Duration) (T, bool)
 		select {
 		case <-timer.C:
 			var t T
-			return t, false
+			return t, false, false
 		case e.left <- value: // send value to left
 		}
 
 		select {
 		case <-time.After(timeout):
 			var t T
-			return t, false
+			return t, true, false
 		case v := <-e.right: // wait for value from left
-			return v, true
+			return v, true, true
 		}
+	}
+
+	// other goroutine
+	panic("sync: exchange called from neither left nor right goroutine")
+}
+
+// Recv receives value from the other goroutine.
+// It returns the value received from the other goroutine but not send value to the other goroutine.
+func (e *Exchanger[T]) Recv() T {
+	goid := goroutine.ID()
+
+	// left goroutine
+	isLeft := atomic.CompareAndSwapInt64(&e.leftGoID, -1, goid)
+	if !isLeft {
+		isLeft = atomic.LoadInt64(&e.leftGoID) == goid
+	}
+	if isLeft {
+		return <-e.left
+	}
+
+	// right goroutine
+	isRight := atomic.CompareAndSwapInt64(&e.rightGoID, -1, goid)
+	if !isRight {
+		isRight = atomic.LoadInt64(&e.rightGoID) == goid
+	}
+	if isRight {
+		return <-e.right
 	}
 
 	// other goroutine

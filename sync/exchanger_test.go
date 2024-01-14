@@ -132,7 +132,21 @@ func TestExchanger_panic(t *testing.T) {
 
 func TestExchanger_timeout(t *testing.T) {
 	exchanger := syncx.NewExchanger[int]()
-	v, exchanged := exchanger.ExchangeTimeout(1, 10*time.Millisecond)
+	v, sent, exchanged := exchanger.ExchangeTimeout(1, 10*time.Millisecond)
+	assert.True(t, sent)
 	assert.False(t, exchanged)
 	assert.Equal(t, 0, v)
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		exchanger.Exchange(2) // success
+		wg.Done()
+	}()
+	wg.Wait()
+
+	// the first goroutine has sent but not received yet bucasue of timeout.
+	// so we recv the value from the second goroutine.
+	v = exchanger.Recv()
+	assert.Equal(t, 2, v)
 }
