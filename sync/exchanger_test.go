@@ -3,6 +3,7 @@ package sync_test
 import (
 	"sync"
 	"testing"
+	"time"
 
 	syncx "github.com/smallnest/exp/sync"
 	"github.com/stretchr/testify/assert"
@@ -77,4 +78,11 @@ func TestExchanger_panic(t *testing.T) {
 	assert.Equal(t, []int{1, 3, 5, 7}, rightReceived)
 
 	assert.Panics(t, func() { exchanger.Exchange(10) })
+}
+
+func TestExchanger_timeout(t *testing.T) {
+	exchanger := syncx.NewExchanger[int]()
+	v, exchanged := exchanger.ExchangeTimeout(1, 10*time.Millisecond)
+	assert.False(t, exchanged)
+	assert.Equal(t, 0, v)
 }

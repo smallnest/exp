@@ -2,6 +2,7 @@ package sync
 
 import (
 	"sync/atomic"
+	"time"
 
 	"github.com/smallnest/goroutine"
 )
@@ -25,8 +26,10 @@ type Exchanger[T any] struct {
 // NewExchanger creates a new exchanger.
 func NewExchanger[T any]() *Exchanger[T] {
 	return &Exchanger[T]{
-		left:  make(chan T, 1),
-		right: make(chan T, 1),
+		leftGoID:  -1,
+		rightGoID: -1,
+		left:      make(chan T, 1),
+		right:     make(chan T, 1),
 	}
 }
 
@@ -40,25 +43,85 @@ func (e *Exchanger[T]) Exchange(value T) T {
 	goid := goroutine.ID()
 
 	// left goroutine
-	if ok := atomic.CompareAndSwapInt64(&e.leftGoID, 0, goid); ok {
-		e.right <- value // send value to right
-		return <-e.left  // wait for value from right
+	isLeft := atomic.CompareAndSwapInt64(&e.leftGoID, -1, goid)
+	if !isLeft {
+		isLeft = atomic.LoadInt64(&e.leftGoID) == goid
 	}
-
-	if atomic.LoadInt64(&e.leftGoID) == goid {
+	if isLeft {
 		e.right <- value // send value to right
 		return <-e.left  // wait for value from right
 	}
 
 	// right goroutine
-	if ok := atomic.CompareAndSwapInt64(&e.rightGoID, 0, goid); ok {
+	isRight := atomic.CompareAndSwapInt64(&e.rightGoID, -1, goid)
+	if !isRight {
+		isRight = atomic.LoadInt64(&e.rightGoID) == goid
+	}
+	if isRight {
 		e.left <- value  // send value to left
 		return <-e.right // wait for value from left
 	}
 
-	if atomic.LoadInt64(&e.rightGoID) == goid {
-		e.left <- value  // send value to left
-		return <-e.right // wait for value from left
+	// other goroutine
+	panic("sync: exchange called from neither left nor right goroutine")
+}
+
+// ExchangeTimeout exchanges value between two goroutines.
+// It returns the value received from the other goroutine and true if success.
+// It returns false if timeout.
+//
+// It panics if called from neither left nor right goroutine.
+// If the other goroutine has not called Exchange yet, it blocks until timeout.
+func (e *Exchanger[T]) ExchangeTimeout(value T, timeout time.Duration) (T, bool) {
+	goid := goroutine.ID()
+
+	// left goroutine
+	isLeft := atomic.CompareAndSwapInt64(&e.leftGoID, -1, goid)
+	if !isLeft {
+		isLeft = atomic.LoadInt64(&e.leftGoID) == goid
+	}
+	if isLeft {
+		timer := time.NewTimer(timeout)
+		defer timer.Stop()
+		select {
+		case <-timer.C:
+			var t T
+			return t, false
+		case e.right <- value: // send value to right
+		}
+
+		select {
+		case <-time.After(timeout):
+			var t T
+			return t, false
+		case v := <-e.left:
+			return v, true
+		}
+	}
+
+	// right goroutine
+	isRight := atomic.CompareAndSwapInt64(&e.rightGoID, -1, goid)
+	if !isRight {
+		isRight = atomic.LoadInt64(&e.rightGoID) == goid
+	}
+	if isRight {
+		timer := time.NewTimer(timeout)
+		defer timer.Stop()
+
+		select {
+		case <-timer.C:
+			var t T
+			return t, false
+		case e.left <- value: // send value to left
+		}
+
+		select {
+		case <-time.After(timeout):
+			var t T
+			return t, false
+		case v := <-e.right: // wait for value from left
+			return v, true
+		}
 	}
 
 	// other goroutine
