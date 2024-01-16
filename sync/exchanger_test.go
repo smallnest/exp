@@ -217,6 +217,30 @@ func BenchmarkExchanger_Channel(b *testing.B) {
 	done.Store(true)
 }
 
+func BenchmarkExchanger_Baseline(b *testing.B) {
+	var reuslt = make(chan int, 1024)
+
+	var done atomic.Bool
+
+	b.ResetTimer()
+	// consumer
+	go func() {
+		for i := 0; ; i++ {
+			if done.Load() {
+				return
+			}
+			pow(4) // mock process
+			reuslt <- i
+		}
+	}()
+
+	for i := 0; i < b.N; i++ {
+		<-reuslt
+	}
+
+	done.Store(true)
+}
+
 func pow(targetBits int) {
 	target := big.NewInt(1)
 	target.Lsh(target, uint(256-targetBits))
