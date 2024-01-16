@@ -135,6 +135,14 @@ func TestExchanger_panic(t *testing.T) {
 }
 
 func BenchmarkExchanger(b *testing.B) {
+	hards := []int{0, 1, 2, 4, 8}
+	for _, hard := range hards {
+		b.Run("hard-"+strconv.Itoa(hard), func(b *testing.B) {
+			benchmarkExchanger(b, hard)
+		})
+	}
+}
+func benchmarkExchanger(b *testing.B, hard int) {
 	exchanger := syncx.NewExchanger[[]int]()
 	var buf1 = make([]int, 0, 1024)
 	var buf2 = make([]int, 0, 1024)
@@ -168,7 +176,7 @@ func BenchmarkExchanger(b *testing.B) {
 			}
 			buf = exchanger.Exchange(buf)
 			for _, n := range buf {
-				pow(4) // mock process
+				pow(hard) // mock process
 				reuslt <- n
 			}
 		}
@@ -182,6 +190,16 @@ func BenchmarkExchanger(b *testing.B) {
 }
 
 func BenchmarkExchanger_Channel(b *testing.B) {
+	hards := []int{0, 1, 2, 4, 8}
+	for _, hard := range hards {
+		b.Run("hard-"+strconv.Itoa(hard), func(b *testing.B) {
+			benchmarkExchanger_Channel(b, hard)
+		})
+	}
+
+}
+
+func benchmarkExchanger_Channel(b *testing.B, hard int) {
 	var buf = make(chan int, 1024)
 	var reuslt = make(chan int, 1024)
 
@@ -205,7 +223,7 @@ func BenchmarkExchanger_Channel(b *testing.B) {
 				return
 			}
 			n := <-buf
-			pow(4) // mock process
+			pow(hard) // mock process
 			reuslt <- n
 		}
 	}()
@@ -218,6 +236,15 @@ func BenchmarkExchanger_Channel(b *testing.B) {
 }
 
 func BenchmarkExchanger_Baseline(b *testing.B) {
+	hards := []int{0, 1, 2, 4, 8}
+	for _, hard := range hards {
+		b.Run("hard-"+strconv.Itoa(hard), func(b *testing.B) {
+			benchmarkExchanger_Baseline(b, hard)
+		})
+	}
+}
+
+func benchmarkExchanger_Baseline(b *testing.B, hard int) {
 	var reuslt = make(chan int, 1024)
 
 	var done atomic.Bool
@@ -229,7 +256,7 @@ func BenchmarkExchanger_Baseline(b *testing.B) {
 			if done.Load() {
 				return
 			}
-			pow(4) // mock process
+			pow(hard) // mock process
 			reuslt <- i
 		}
 	}()
