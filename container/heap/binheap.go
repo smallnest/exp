@@ -50,7 +50,7 @@ func NewBinHeapWithInitial[V cmp.Ordered](s []V, opts ...BinHeapOption[V]) *BinH
 
 	n := len(s)
 	for i := n/2 - 1; i >= 0; i-- {
-		shift_down[V](&h.binHeap, i, n, h.maxHeap)
+		sift_down[V](&h.binHeap, i, n, h.maxHeap)
 	}
 
 	return h
@@ -83,7 +83,7 @@ func (h *BinHeap[V]) Len() int {
 // Len returns the number of elements in the heap.
 func (h *BinHeap[V]) Push(x V) {
 	h.binHeap.Push(x)
-	shift_up[V](&h.binHeap, h.binHeap.Len()-1, h.maxHeap)
+	sift_up[V](&h.binHeap, h.binHeap.Len()-1, h.maxHeap)
 }
 
 // Peek returns the element at the top of the heap without removing it.
@@ -100,11 +100,11 @@ func (h *BinHeap[V]) Peek() (V, bool) {
 func (h *BinHeap[V]) Pop() V {
 	n := h.binHeap.Len() - 1
 	h.binHeap.Swap(0, n)
-	shift_down[V](&h.binHeap, 0, n, h.maxHeap)
+	sift_down[V](&h.binHeap, 0, n, h.maxHeap)
 	return h.binHeap.Pop()
 }
 
-func shift_up[V cmp.Ordered](h *binHeap[V], j int, maxHeap bool) {
+func sift_up[V cmp.Ordered](h *binHeap[V], j int, maxHeap bool) {
 	less := h.Less
 	if maxHeap {
 		less = func(i, j int) bool { return !h.Less(i, j) }
@@ -119,7 +119,7 @@ func shift_up[V cmp.Ordered](h *binHeap[V], j int, maxHeap bool) {
 	}
 }
 
-func shift_down[V cmp.Ordered](h *binHeap[V], i0, n int, maxHeap bool) bool {
+func sift_down[V cmp.Ordered](h *binHeap[V], i0, n int, maxHeap bool) bool {
 	less := h.Less
 	if maxHeap {
 		less = func(i, j int) bool { return !h.Less(i, j) }
