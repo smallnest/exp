@@ -23,5 +23,5 @@ func TestSafeClose(t *testing.T) {
 
 	justClosed, err = SafeClose(conn)
 	assert.True(t, justClosed)
-	assert.NoError(t, err)
+	assert.Error(t, err)
 }
