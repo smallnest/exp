@@ -1,6 +1,9 @@
 package queue
 
 import (
+	"math/rand"
+	"sync"
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -72,6 +75,50 @@ func TestDeque_Steal(t *testing.T) {
 	_, ok := d.Steal()
 	if ok {
 		t.Fatal("Steal() should have failed on an empty deque")
+	}
+}
+
+func TestDeque_Concurrency(t *testing.T) {
+	d := NewDeque[int](128)
+
+	n := uint64(1024 * 10)
+	var count atomic.Uint64
+
+	// single producer
+	go func() {
+		for i := 0; i < int(n); i++ {
+			d.PushBottom(i)
+			if rand.Intn(100) == 0 {
+				if _, ok := d.PopBottom(); ok {
+					count.Add(1)
+				}
+			}
+		}
+	}()
+
+	var wg sync.WaitGroup
+	wg.Add(100)
+
+	for i := 0; i < 100; i++ {
+		go func() {
+			for {
+				_, ok := d.Steal()
+				if ok {
+					count.Add(1)
+				}
+
+				if count.Load() >= n {
+					wg.Done()
+					return
+				}
+			}
+		}()
+	}
+
+	wg.Wait()
+
+	if count.Load() != n {
+		assert.Equal(t, n, count.Load())
 	}
 }
 
@@ -158,4 +205,57 @@ func BenchmarkDeque(b *testing.B) {
 			deque.Steal()
 		}
 	})
+}
+
+func BenchmarkDeque_Concurrency(b *testing.B) {
+	d := NewDeque[int](128)
+
+	var n uint64
+	var count atomic.Uint64
+
+	// single producer
+	producerDone := make(chan struct{})
+	go func() {
+		for i := 0; i < b.N; i++ {
+			d.PushBottom(i)
+			n++
+			if rand.Intn(100) == 0 {
+				if _, ok := d.PopBottom(); ok {
+					count.Add(1)
+				}
+			}
+		}
+		close(producerDone)
+	}()
+
+	var wg sync.WaitGroup
+	wg.Add(100)
+
+	for i := 0; i < 100; i++ {
+		go func() {
+			for {
+				_, ok := d.Steal()
+				if ok {
+					count.Add(1)
+				}
+
+				select {
+				case <-producerDone:
+					if count.Load() >= n {
+						wg.Done()
+						return
+					}
+				default:
+
+				}
+
+			}
+		}()
+	}
+
+	wg.Wait()
+
+	if count.Load() != n {
+		assert.Equal(b, n, count.Load())
+	}
 }
