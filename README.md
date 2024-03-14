@@ -28,6 +28,7 @@ Experimental packages not in std and golang.org/exp
 - **container**
   - **heap**: generic heap
   - **binheap**: human friendly generic heap
+  - **queue**: generic lock-free deque
   - **list**: generic list
   - **ring**: generic ring
   - **skiplist**: generic skiplist based on [mauricegit/skiplist](https://github.com/mauricegit/skiplist)
