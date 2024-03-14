@@ -9,7 +9,7 @@ import (
 func TestDeque_PushPop(t *testing.T) {
 	d := NewDeque[int](4)
 	for i := 0; i < 10; i++ {
-		d.Push(i)
+		d.PushBottom(i)
 		if got, want := d.Size(), uint64(i+1); got != want {
 			t.Fatalf("unexpected size after push: got %d, want %d", got, want)
 		}
@@ -32,7 +32,7 @@ func TestDeque_PushPop(t *testing.T) {
 		}
 	}
 	for i := 9; i >= 0; i-- {
-		val, ok := d.Pop()
+		val, ok := d.PopBottom()
 		if !ok {
 			t.Fatal("unexpected Pop() failure")
 		}
@@ -46,7 +46,7 @@ func TestDeque_PushPop(t *testing.T) {
 			t.Fatal("deque should not be empty")
 		}
 	}
-	_, ok := d.Pop()
+	_, ok := d.PopBottom()
 	if ok {
 		t.Fatal("Pop() should have failed on an empty deque")
 	}
@@ -55,7 +55,7 @@ func TestDeque_PushPop(t *testing.T) {
 func TestDeque_Steal(t *testing.T) {
 	d := NewDeque[int](4)
 	for i := 0; i < 4; i++ {
-		d.Push(i)
+		d.PushBottom(i)
 	}
 	for i := 0; i < 4; i++ {
 		val, ok := d.Steal()
@@ -80,18 +80,18 @@ func TestDeque_Size(t *testing.T) {
 	assert.Equal(t, uint64(0), d.Size())
 	assert.True(t, d.Empty())
 
-	d.Push(1)
+	d.PushBottom(1)
 	assert.Equal(t, uint64(1), d.Size())
 	assert.False(t, d.Empty())
 
-	d.Push(2)
-	d.Push(3)
-	d.Push(4)
+	d.PushBottom(2)
+	d.PushBottom(3)
+	d.PushBottom(4)
 	assert.Equal(t, uint64(4), d.Size())
 	assert.False(t, d.Empty())
 
-	d.Pop()
-	d.Pop()
+	d.PopBottom()
+	d.PopBottom()
 	assert.Equal(t, uint64(2), d.Size())
 	assert.False(t, d.Empty())
 
@@ -99,7 +99,7 @@ func TestDeque_Size(t *testing.T) {
 	assert.Equal(t, uint64(1), d.Size())
 	assert.False(t, d.Empty())
 
-	d.Pop()
+	d.PopBottom()
 	assert.Equal(t, uint64(0), d.Size())
 	assert.True(t, d.Empty())
 }
@@ -108,16 +108,16 @@ func TestDeque_Capacity(t *testing.T) {
 	d := NewDeque[int](4)
 	assert.Equal(t, uint64(4), d.Capacity())
 
-	d.Push(1)
-	d.Push(2)
-	d.Push(3)
-	d.Push(4)
+	d.PushBottom(1)
+	d.PushBottom(2)
+	d.PushBottom(3)
+	d.PushBottom(4)
 	assert.Equal(t, uint64(4), d.Capacity())
 
-	d.Pop()
-	d.Pop()
-	d.Pop()
-	d.Pop()
+	d.PopBottom()
+	d.PopBottom()
+	d.PopBottom()
+	d.PopBottom()
 	assert.Equal(t, uint64(4), d.Capacity())
 }
 
@@ -125,10 +125,10 @@ func TestDeque_Empty(t *testing.T) {
 	d := NewDeque[int](4)
 	assert.True(t, d.Empty())
 
-	d.Push(1)
+	d.PushBottom(1)
 	assert.False(t, d.Empty())
 
-	d.Pop()
+	d.PopBottom()
 	assert.True(t, d.Empty())
 }
 
@@ -137,19 +137,19 @@ func BenchmarkDeque(b *testing.B) {
 
 	b.Run("Push", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			deque.Push(i)
+			deque.PushBottom(i)
 		}
 	})
 
 	b.Run("Pop", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			deque.Pop()
+			deque.PopBottom()
 		}
 	})
 
 	b.Run("Push2", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			deque.Push(i)
+			deque.PushBottom(i)
 		}
 	})
 

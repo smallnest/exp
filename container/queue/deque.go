@@ -39,8 +39,8 @@ func (r *RingBuffer[T]) Load(i uint64) T {
 	return r.buff[i&r.mask]
 }
 
-// Resize resizes the ring buffer to the given bounds.
-func (r *RingBuffer[T]) Resize(b, t uint64) *RingBuffer[T] {
+// Grow rows the ring buffer to the given bounds.
+func (r *RingBuffer[T]) Grow(b, t uint64) *RingBuffer[T] {
 	newRing := NewRingBuffer[T](2 * r.cap)
 	for i := t; i != b; i++ {
 		newRing.Store(i, r.Load(i))
@@ -84,24 +84,24 @@ func (d *Deque[T]) Empty() bool {
 	return d.Size() == 0
 }
 
-// Push pushes the value x to the deque.
+// PushBottom pushes the value x to the deque.
 // The value x is pushed to the bottom of the deque.
-func (d *Deque[T]) Push(x T) {
+func (d *Deque[T]) PushBottom(x T) {
 	b := atomic.LoadUint64(&d.bottom)
 	t := atomic.LoadUint64(&d.top)
 	buf := (*RingBuffer[T])(atomic.LoadPointer(&d.buffer))
 	if buf.Capacity() < b-t+1 {
 		d.garbage = append(d.garbage, buf)
-		buf = buf.Resize(b, t)
+		buf = buf.Grow(b, t)
 		atomic.StorePointer(&d.buffer, unsafe.Pointer(buf))
 	}
 	buf.Store(b, x)
 	atomic.StoreUint64(&d.bottom, b+1)
 }
 
-// Pop pops the value from the deque.
+// PopBottom pops the value from the deque.
 // The value x is popped from the bottom of the deque.
-func (d *Deque[T]) Pop() (x T, ok bool) {
+func (d *Deque[T]) PopBottom() (x T, ok bool) {
 	b := atomic.AddUint64(&d.bottom, ^uint64(0))
 	buf := (*RingBuffer[T])(atomic.LoadPointer(&d.buffer))
 	t := atomic.LoadUint64(&d.top)
@@ -120,9 +120,9 @@ func (d *Deque[T]) Pop() (x T, ok bool) {
 	return x, false
 }
 
-// Peek peeks at the value from the deque without removing it.
+// PeekBottom peeks at the value from the deque without removing it.
 // The value x is peeked from the top of the deque without removing it.
-func (d *Deque[T]) Peek() (x T, ok bool) {
+func (d *Deque[T]) PeekBottom() (x T, ok bool) {
 	b := atomic.AddUint64(&d.bottom, ^uint64(0))
 	buf := (*RingBuffer[T])(atomic.LoadPointer(&d.buffer))
 	t := atomic.LoadUint64(&d.top)
@@ -134,8 +134,9 @@ func (d *Deque[T]) Peek() (x T, ok bool) {
 	return x, false
 }
 
-// Steal steals a value from the deque.
+// StealTop steals a value from the deque.
 // The value x is stolen from the top of the deque.
+// ok indicates whether the value was stolen, false if the deque is empty or other goroutines are stealing.
 func (d *Deque[T]) Steal() (x T, ok bool) {
 	t := atomic.LoadUint64(&d.top)
 	b := atomic.LoadUint64(&d.bottom)
@@ -150,9 +151,9 @@ func (d *Deque[T]) Steal() (x T, ok bool) {
 	return x, false
 }
 
-// StealPeek peeks at a value from the deque without removing it.
+// PeekTop peeks at a value from the deque without removing it.
 // The value x is peeked from the top of the deque without removing it.
-func (d *Deque[T]) StealPeek() (x T, ok bool) {
+func (d *Deque[T]) PeekTop() (x T, ok bool) {
 	t := atomic.LoadUint64(&d.top)
 	b := atomic.LoadUint64(&d.bottom)
 	if t < b {
