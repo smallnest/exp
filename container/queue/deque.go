@@ -52,11 +52,13 @@ func (r *RingBuffer[T]) Grow(b, t uint64) *RingBuffer[T] {
 // Deque is a bleeding-edge lock-free, single-producer multi-consumer, Chase-Lev work stealing deque as presented
 // in the paper ["Dynamic Circular Work-Stealing Deque"](https://dl.acm.org/doi/10.1145/1073970.1073974) and further improved in the follow up paper:
 // ["Correct and Efficient Work-Stealing for Weak Memory Models"](https://dl.acm.org/doi/10.1145/2442516.2442524).
+//
+// Still has data race issues.
 type Deque[T any] struct {
-	top     uint64
-	bottom  uint64
-	buffer  unsafe.Pointer
-	garbage []*RingBuffer[T]
+	top    uint64
+	bottom uint64
+	buffer unsafe.Pointer
+	// garbage []*RingBuffer[T]
 }
 
 // NewDeque creates a new deque with the given capacity.
@@ -91,7 +93,7 @@ func (d *Deque[T]) PushBottom(x T) {
 	t := atomic.LoadUint64(&d.top)
 	buf := (*RingBuffer[T])(atomic.LoadPointer(&d.buffer))
 	if buf.Capacity() < b-t+1 {
-		d.garbage = append(d.garbage, buf)
+		// d.garbage = append(d.garbage, buf)
 		buf = buf.Grow(b, t)
 		atomic.StorePointer(&d.buffer, unsafe.Pointer(buf))
 	}
