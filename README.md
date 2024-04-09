@@ -24,6 +24,7 @@ Experimental packages not in std and golang.org/exp
     - Int64
     - Uint32
     - Uint64
+  - **Pool**: a generic pool, forked from https://github.com/mkmik/syncpool
 
 - **container**
   - **heap**: generic heap
