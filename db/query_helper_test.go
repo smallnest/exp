@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"testing"
 
@@ -35,7 +36,7 @@ type person struct {
 func TestRows(t *testing.T) {
 	db := exampleDB(t)
 
-	persons, err := Rows[person](db, "SELECT * FROM persons order by id")
+	persons, err := Rows[person](context.Background(), db, "SELECT * FROM persons order by id")
 	assert.NoError(t, err)
 	require.Equal(t, 2, len(persons))
 	assert.Equal(t, 1, persons[0].ID)
@@ -43,7 +44,7 @@ func TestRows(t *testing.T) {
 	assert.Equal(t, 2, persons[1].ID)
 	assert.Equal(t, "fred", persons[1].Name)
 
-	names, err := Rows[string](db, "SELECT name FROM persons order by id")
+	names, err := Rows[string](context.Background(), db, "SELECT name FROM persons order by id")
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(names))
 	assert.Equal(t, "brett", names[0])
@@ -53,12 +54,43 @@ func TestRows(t *testing.T) {
 func TestRow(t *testing.T) {
 	db := exampleDB(t)
 
-	person, err := Row[person](db, "SELECT * FROM persons order by id limit 1")
+	person, err := Row[person](context.Background(), db, "SELECT * FROM persons order by id limit 1")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, person.ID)
 	assert.Equal(t, "brett", person.Name)
 
-	name, err := Row[string](db, "SELECT name FROM persons order by id limit 1")
+	name, err := Row[string](context.Background(), db, "SELECT name FROM persons order by id limit 1")
+	assert.NoError(t, err)
+	assert.Equal(t, "brett", name)
+}
+
+func TestRowsMap(t *testing.T) {
+	db := exampleDB(t)
+
+	persons, err := RowsMap(context.Background(), db, "SELECT * FROM persons order by id")
+	assert.NoError(t, err)
+	require.Equal(t, 2, len(persons))
+	assert.Equal(t, int64(1), persons[0]["id"])
+	assert.Equal(t, "brett", persons[0]["name"])
+	assert.Equal(t, int64(2), persons[1]["id"])
+	assert.Equal(t, "fred", persons[1]["name"])
+
+	names, err := RowsMap(context.Background(), db, "SELECT name FROM persons order by id")
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(names))
+	assert.Equal(t, "brett", names[0]["name"])
+	assert.Equal(t, "fred", names[1]["name"])
+}
+
+func TestRowMap(t *testing.T) {
+	db := exampleDB(t)
+
+	person, err := RowMap(context.Background(), db, "SELECT * FROM persons order by id limit 1")
+	assert.NoError(t, err)
+	assert.Equal(t, int64(1), person["id"])
+	assert.Equal(t, "brett", person["name"])
+
+	name, err := Row[string](context.Background(), db, "SELECT name FROM persons order by id limit 1")
 	assert.NoError(t, err)
 	assert.Equal(t, "brett", name)
 }

@@ -49,3 +49,4 @@ Experimental packages not in std and golang.org/exp
 
 - **db**
   - `Rows` and `Row` provides two helper functions to query structs from databases.
+  - `RowsMap` and `RowMap` provides two helper functions to query map from databases.
