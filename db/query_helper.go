@@ -38,9 +38,12 @@ func Row[T any](ctx context.Context, db *sql.DB, query string, args ...any) (T, 
 	return result, err
 }
 
-// RowsMap is a helper function that wraps sql rows to scan into a slice of map[string]any.
+// Record is a type alias for map[string]any.
+type Record = map[string]any
+
+// RowsMap is a helper function that wraps sql rows to scan into a slice of Record.
 // Key of the map is the column name, and value is the column value.
-func RowsMap(ctx context.Context, db *sql.DB, query string, args ...any) ([]map[string]any, error) {
+func RowsMap(ctx context.Context, db *sql.DB, query string, args ...any) ([]Record, error) {
 	rows, err := db.QueryContext(ctx, query, args...)
 	defer rows.Close()
 	if err != nil {
@@ -58,14 +61,14 @@ func RowsMap(ctx context.Context, db *sql.DB, query string, args ...any) ([]map[
 		colPtrs[i] = &cols[i]
 	}
 
-	var ret []map[string]any
+	var ret []Record
 	for rows.Next() {
 		err = rows.Scan(colPtrs...)
 		if err != nil {
 			return nil, err
 		}
 
-		row := make(map[string]any)
+		row := make(Record)
 		for i, col := range cols {
 			row[colNames[i]] = col
 		}
@@ -75,10 +78,10 @@ func RowsMap(ctx context.Context, db *sql.DB, query string, args ...any) ([]map[
 	return ret, nil
 }
 
-// RowMap is a helper function that wraps sql rows to scan into a single map[string]any.
+// RowMap is a helper function that wraps sql rows to scan into a single Record.
 // Key of the map is the column name, and value is the column value.
 // It returns the first row of the result set.
-func RowMap(ctx context.Context, db *sql.DB, query string, args ...any) (map[string]any, error) {
+func RowMap(ctx context.Context, db *sql.DB, query string, args ...any) (Record, error) {
 	rows, err := db.QueryContext(ctx, query, args...)
 	defer rows.Close()
 	if err != nil {
@@ -105,7 +108,7 @@ func RowMap(ctx context.Context, db *sql.DB, query string, args ...any) (map[str
 		return nil, err
 	}
 
-	ret := make(map[string]any)
+	ret := make(Record)
 	for i, col := range cols {
 		ret[colNames[i]] = col
 	}
