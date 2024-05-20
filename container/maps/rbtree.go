@@ -56,6 +56,30 @@ func (tree *RBTree) InOrder() []Node {
 	return nodes
 }
 
+// Min 方法返回树中的最小键和对应的值。如果树为空，则返回 nil。
+func (tree *RBTree) Min() (int, interface{}) {
+	if tree.Root == nil {
+		return 0, nil
+	}
+	node := tree.Root
+	for node.Left != nil {
+		node = node.Left
+	}
+	return node.Key, node.Value
+}
+
+// Max 方法返回树中的最大键和对应的值。如果树为空，则返回 nil。
+func (tree *RBTree) Max() (int, interface{}) {
+	if tree.Root == nil {
+		return 0, nil
+	}
+	node := tree.Root
+	for node.Right != nil {
+		node = node.Right
+	}
+	return node.Key, node.Value
+}
+
 // ReverseInOrder 方法返回一个按键降序的所有节点的切片。
 func (tree *RBTree) ReverseInOrder() []Node {
 	nodes := []Node{}
