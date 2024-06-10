@@ -5,25 +5,25 @@ const (
 	BLACK = false
 )
 
-type Node struct {
+type Node[T any] struct {
 	Key   int
-	Value interface{}
+	Value T
 	Color bool
-	Left  *Node
-	Right *Node
+	Left  *Node[T]
+	Right *Node[T]
 }
 
-type RBTree struct {
-	Root *Node
+type RBTree[T any] struct {
+	Root *Node[T]
 	Size int
 }
 
-func NewRBTree() *RBTree {
-	return &RBTree{}
+func NewRBTree[T any]() *RBTree[T] {
+	return &RBTree[T]{}
 }
 
 // Get 方法返回与给定键关联的值。如果键不存在，则返回 nil。
-func (tree *RBTree) Get(key int) interface{} {
+func (tree *RBTree[T]) Get(key int) T {
 	node := tree.Root
 	for node != nil {
 		if key < node.Key {
@@ -34,13 +34,15 @@ func (tree *RBTree) Get(key int) interface{} {
 			return node.Value
 		}
 	}
-	return nil
+
+	var t T
+	return t
 }
 
 // InOrder 方法返回一个按键升序的所有节点的切片。
-func (tree *RBTree) InOrder() []Node {
-	nodes := []Node{}
-	stack := []*Node{}
+func (tree *RBTree[T]) InOrder() []Node[T] {
+	nodes := []Node[T]{}
+	stack := []*Node[T]{}
 
 	node := tree.Root
 	for node != nil || len(stack) > 0 {
@@ -57,7 +59,7 @@ func (tree *RBTree) InOrder() []Node {
 }
 
 // Min 方法返回树中的最小键和对应的值。如果树为空，则返回 nil。
-func (tree *RBTree) Min() (int, interface{}) {
+func (tree *RBTree[T]) Min() (int, interface{}) {
 	if tree.Root == nil {
 		return 0, nil
 	}
@@ -69,7 +71,7 @@ func (tree *RBTree) Min() (int, interface{}) {
 }
 
 // Max 方法返回树中的最大键和对应的值。如果树为空，则返回 nil。
-func (tree *RBTree) Max() (int, interface{}) {
+func (tree *RBTree[T]) Max() (int, interface{}) {
 	if tree.Root == nil {
 		return 0, nil
 	}
@@ -81,9 +83,9 @@ func (tree *RBTree) Max() (int, interface{}) {
 }
 
 // ReverseInOrder 方法返回一个按键降序的所有节点的切片。
-func (tree *RBTree) ReverseInOrder() []Node {
-	nodes := []Node{}
-	stack := []*Node{}
+func (tree *RBTree[T]) ReverseInOrder() []Node[T] {
+	nodes := []Node[T]{}
+	stack := []*Node[T]{}
 
 	node := tree.Root
 	for node != nil || len(stack) > 0 {
@@ -100,15 +102,15 @@ func (tree *RBTree) ReverseInOrder() []Node {
 }
 
 // 插入节点
-func (tree *RBTree) Insert(key int, value interface{}) {
+func (tree *RBTree[T]) Insert(key int, value T) {
 	tree.Root = tree.insert(tree.Root, key, value)
 	tree.Root.Color = BLACK
 	tree.Size++
 }
 
-func (tree *RBTree) insert(node *Node, key int, value interface{}) *Node {
+func (tree *RBTree[T]) insert(node *Node[T], key int, value T) *Node[T] {
 	if node == nil {
-		return &Node{Key: key, Value: value, Color: RED}
+		return &Node[T]{Key: key, Value: value, Color: RED}
 	}
 
 	if key < node.Key {
@@ -123,7 +125,7 @@ func (tree *RBTree) insert(node *Node, key int, value interface{}) *Node {
 }
 
 // 左旋
-func (tree *RBTree) rotateLeft(node *Node) *Node {
+func (tree *RBTree[T]) rotateLeft(node *Node[T]) *Node[T] {
 	x := node.Right
 	node.Right = x.Left
 	x.Left = node
@@ -133,7 +135,7 @@ func (tree *RBTree) rotateLeft(node *Node) *Node {
 }
 
 // 右旋
-func (tree *RBTree) rotateRight(node *Node) *Node {
+func (tree *RBTree[T]) rotateRight(node *Node[T]) *Node[T] {
 	x := node.Left
 	node.Left = x.Right
 	x.Right = node
@@ -143,7 +145,7 @@ func (tree *RBTree) rotateRight(node *Node) *Node {
 }
 
 // 保持红黑树的平衡
-func (tree *RBTree) balance(node *Node) *Node {
+func (tree *RBTree[T]) balance(node *Node[T]) *Node[T] {
 	// 如果当前节点的右子节点是红色，而左子节点是黑色，进行左旋转
 	// 这是为了保证红色节点都在左侧，即红黑树的性质4：红色节点的两个子节点都是黑色
 	if isRed(node.Right) && !isRed(node.Left) {
@@ -165,14 +167,14 @@ func (tree *RBTree) balance(node *Node) *Node {
 	return node
 }
 
-func isRed(node *Node) bool {
+func isRed[T any](node *Node[T]) bool {
 	if node == nil {
 		return false
 	}
 	return node.Color == RED
 }
 
-func flipColors(node *Node) {
+func flipColors[T any](node *Node[T]) {
 	node.Color = !node.Color
 	if node.Left != nil {
 		node.Left.Color = !node.Left.Color
@@ -184,7 +186,7 @@ func flipColors(node *Node) {
 }
 
 // 删除节点
-func (tree *RBTree) Delete(key int) {
+func (tree *RBTree[T]) Delete(key int) {
 	var deleted bool
 	if !isRed(tree.Root.Left) && !isRed(tree.Root.Right) {
 		tree.Root.Color = RED
@@ -198,7 +200,7 @@ func (tree *RBTree) Delete(key int) {
 	}
 }
 
-func (tree *RBTree) delete(node *Node, key int) (*Node, bool) {
+func (tree *RBTree[T]) delete(node *Node[T], key int) (*Node[T], bool) {
 	if node == nil {
 		return nil, false
 	}
@@ -229,7 +231,7 @@ func (tree *RBTree) delete(node *Node, key int) (*Node, bool) {
 	return tree.balance(node), deleted
 }
 
-func (tree *RBTree) moveRedLeft(node *Node) *Node {
+func (tree *RBTree[T]) moveRedLeft(node *Node[T]) *Node[T] {
 	flipColors(node)
 	if node.Right != nil && isRed(node.Right.Left) {
 		node.Right = tree.rotateRight(node.Right)
@@ -239,7 +241,7 @@ func (tree *RBTree) moveRedLeft(node *Node) *Node {
 	return node
 }
 
-func (tree *RBTree) moveRedRight(node *Node) *Node {
+func (tree *RBTree[T]) moveRedRight(node *Node[T]) *Node[T] {
 	flipColors(node)
 	if node.Left != nil && isRed(node.Left.Left) {
 		node = tree.rotateRight(node)
@@ -248,7 +250,7 @@ func (tree *RBTree) moveRedRight(node *Node) *Node {
 	return node
 }
 
-func (tree *RBTree) deleteMin(node *Node) (*Node, bool) {
+func (tree *RBTree[T]) deleteMin(node *Node[T]) (*Node[T], bool) {
 	if node.Left == nil {
 		return nil, true
 	}
@@ -260,7 +262,7 @@ func (tree *RBTree) deleteMin(node *Node) (*Node, bool) {
 	return tree.balance(node), deleted
 }
 
-func (tree *RBTree) min(node *Node) *Node {
+func (tree *RBTree[T]) min(node *Node[T]) *Node[T] {
 	if node.Left == nil {
 		return node
 	}

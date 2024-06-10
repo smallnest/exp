@@ -1,6 +1,6 @@
 module github.com/smallnest/exp
 
-go 1.21
+go 1.22.0
 
 require (
 	github.com/blockloop/scan v1.3.0

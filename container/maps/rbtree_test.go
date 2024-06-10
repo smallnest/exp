@@ -5,7 +5,7 @@ import (
 )
 
 func TestRBTree(t *testing.T) {
-	tree := &RBTree{}
+	tree := &RBTree[string]{}
 
 	t.Run("Insert and Size", func(t *testing.T) {
 		tree.Insert(5, "five")
@@ -31,7 +31,7 @@ func TestRBTree(t *testing.T) {
 }
 
 func TestInOrder(t *testing.T) {
-	tree := NewRBTree()
+	tree := NewRBTree[string]()
 	tree.Insert(3, "three")
 	tree.Insert(1, "one")
 	tree.Insert(2, "two")
@@ -51,7 +51,7 @@ func TestInOrder(t *testing.T) {
 }
 
 func TestReverseInOrder(t *testing.T) {
-	tree := NewRBTree()
+	tree := NewRBTree[string]()
 	tree.Insert(3, "three")
 	tree.Insert(1, "one")
 	tree.Insert(2, "two")
@@ -71,7 +71,7 @@ func TestReverseInOrder(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	tree := NewRBTree()
+	tree := NewRBTree[string]()
 	tree.Insert(3, "three")
 	tree.Insert(1, "one")
 	tree.Insert(2, "two")
@@ -93,13 +93,13 @@ func TestGet(t *testing.T) {
 		t.Errorf("Expected 'four', got %v", value)
 	}
 
-	if value := tree.Get(5); value != nil {
+	if value := tree.Get(5); value != "" {
 		t.Errorf("Expected nil, got %v", value)
 	}
 }
 
 func TestInsert(t *testing.T) {
-	tree := NewRBTree()
+	tree := NewRBTree[string]()
 	tree.Insert(3, "three")
 	tree.Insert(1, "one")
 	tree.Insert(2, "two")
@@ -121,35 +121,35 @@ func TestInsert(t *testing.T) {
 		t.Errorf("Expected 'four', got %v", value)
 	}
 
-	if value := tree.Get(5); value != nil {
+	if value := tree.Get(5); value != "" {
 		t.Errorf("Expected nil, got %v", value)
 	}
 }
 
 func TestDelete(t *testing.T) {
-	tree := NewRBTree()
+	tree := NewRBTree[string]()
 	tree.Insert(3, "three")
 	tree.Insert(1, "one")
 	tree.Insert(2, "two")
 	tree.Insert(4, "four")
 
 	tree.Delete(1)
-	if value := tree.Get(1); value != nil {
+	if value := tree.Get(1); value != "" {
 		t.Errorf("Expected nil, got %v", value)
 	}
 
 	tree.Delete(2)
-	if value := tree.Get(2); value != nil {
+	if value := tree.Get(2); value != "" {
 		t.Errorf("Expected nil, got %v", value)
 	}
 
 	tree.Delete(3)
-	if value := tree.Get(3); value != nil {
+	if value := tree.Get(3); value != "" {
 		t.Errorf("Expected nil, got %v", value)
 	}
 
 	tree.Delete(4)
-	if value := tree.Get(4); value != nil {
+	if value := tree.Get(4); value != "" {
 		t.Errorf("Expected nil, got %v", value)
 	}
 }
@@ -161,7 +161,7 @@ func FuzzInsert(f *testing.F) {
 	f.Add(4, "four")
 
 	f.Fuzz(func(t *testing.T, key int, value string) {
-		tree := NewRBTree()
+		tree := NewRBTree[string]()
 		tree.Insert(key, value)
 		if val := tree.Get(key); val != value {
 			t.Errorf("Expected %v, got %v", value, val)
@@ -176,10 +176,10 @@ func FuzzDelete(f *testing.F) {
 	f.Add(4, "four")
 
 	f.Fuzz(func(t *testing.T, key int, value string) {
-		tree := NewRBTree()
+		tree := NewRBTree[string]()
 		tree.Insert(key, value)
 		tree.Delete(key)
-		if val := tree.Get(key); val != nil {
+		if val := tree.Get(key); val != "" {
 			t.Errorf("Expected nil, got %v", val)
 		}
 	})
