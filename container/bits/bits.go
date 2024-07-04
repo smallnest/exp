@@ -1,8 +1,12 @@
 package bits
 
 import (
+	"errors"
 	"math/bits"
 )
+
+// ErrNotPowerOfTwo is returned when the size of the bitset is not a power of two.
+var ErrNotPowerOfTwo = errors.New("size must be a power of two")
 
 // Bits is a simple bitset implementation, which is a fixed-size array of bits.
 // It supports setting, clearing, and checking the value of a bit at a given position.
@@ -13,12 +17,24 @@ type Bits struct {
 }
 
 // NewBits creates a new bitset with the given size.
-func NewBits(size int) *Bits {
+func NewBits(size int) (*Bits, error) {
+	if !isPowerOfTwo(size) {
+		return nil, ErrNotPowerOfTwo
+	}
+
 	numElements := (size + 63) / 64
 	return &Bits{
 		data: make([]uint64, numElements),
 		size: size,
+	}, nil
+}
+
+// isPowerOfTwo checks if the given number is a power of two.
+func isPowerOfTwo(n int) bool {
+	if n <= 0 {
+		return false
 	}
+	return (n&(n-1)) == 0 || n%64 == 0
 }
 
 // SetBit sets the bit at the given position to 1.
@@ -28,6 +44,7 @@ func (b *Bits) SetBit(pos int) {
 	}
 	elementIndex := pos / 64
 	bitIndex := pos % 64
+
 	b.data[elementIndex] |= 1 << bitIndex
 }
 

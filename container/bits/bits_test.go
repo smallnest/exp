@@ -5,7 +5,11 @@ import (
 )
 
 func TestSetBit(t *testing.T) {
-	bits := NewBits(130)
+	bits, err := NewBits(256)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
 	bits.SetBit(3)
 	if !bits.IsBitSet(3) {
 		t.Errorf("Expected bit 3 to be set")
@@ -17,7 +21,11 @@ func TestSetBit(t *testing.T) {
 }
 
 func TestClearBit(t *testing.T) {
-	bits := NewBits(130)
+	bits, err := NewBits(256)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
 	bits.SetBit(3)
 	bits.ClearBit(3)
 	if bits.IsBitSet(3) {
@@ -31,7 +39,11 @@ func TestClearBit(t *testing.T) {
 }
 
 func TestIsBitSet(t *testing.T) {
-	bits := NewBits(130)
+	bits, err := NewBits(256)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
 	bits.SetBit(3)
 	if !bits.IsBitSet(3) {
 		t.Errorf("Expected bit 3 to be set")
@@ -46,7 +58,11 @@ func TestIsBitSet(t *testing.T) {
 }
 
 func TestCountOnes(t *testing.T) {
-	bits := NewBits(130)
+	bits, err := NewBits(256)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
 	bits.SetBit(3)
 	bits.SetBit(64)
 	bits.SetBit(129)
@@ -56,7 +72,11 @@ func TestCountOnes(t *testing.T) {
 }
 
 func TestLeftShift(t *testing.T) {
-	bits := NewBits(130)
+	bits, err := NewBits(256)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
 	bits.SetBit(3)
 	bits.LeftShift(1)
 	if bits.IsBitSet(3) {
@@ -70,15 +90,14 @@ func TestLeftShift(t *testing.T) {
 	if bits.IsBitSet(129) {
 		t.Errorf("Expected bit 129 to be clear after left shift")
 	}
-
-	bits.LeftShift(130)
-	if bits.CountOnes() != 0 {
-		t.Errorf("Expected all bits to be clear after left shift beyond size")
-	}
 }
 
 func TestRightShift(t *testing.T) {
-	bits := NewBits(130)
+	bits, err := NewBits(256)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
 	bits.SetBit(3)
 	bits.RightShift(1)
 	if bits.IsBitSet(3) {
@@ -92,15 +111,14 @@ func TestRightShift(t *testing.T) {
 	if bits.IsBitSet(129) {
 		t.Errorf("Expected bit 129 to be clear after right shift")
 	}
-
-	bits.RightShift(130)
-	if bits.CountOnes() != 0 {
-		t.Errorf("Expected all bits to be clear after right shift beyond size")
-	}
 }
 
 func TestLeftShiftAcrossWords(t *testing.T) {
-	bits := NewBits(130)
+	bits, err := NewBits(256)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
 	bits.SetBit(63)
 	bits.LeftShift(1)
 	if bits.IsBitSet(63) {
@@ -112,7 +130,11 @@ func TestLeftShiftAcrossWords(t *testing.T) {
 }
 
 func TestRightShiftAcrossWords(t *testing.T) {
-	bits := NewBits(130)
+	bits, err := NewBits(256)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
 	bits.SetBit(64)
 	bits.RightShift(1)
 	if bits.IsBitSet(64) {
@@ -124,7 +146,11 @@ func TestRightShiftAcrossWords(t *testing.T) {
 }
 
 func TestLeftShiftEdgeCases(t *testing.T) {
-	bits := NewBits(130)
+	bits, err := NewBits(256)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
 	bits.SetBit(128)
 	bits.LeftShift(2)
 	if bits.IsBitSet(128) || bits.IsBitSet(129) {
@@ -133,7 +159,11 @@ func TestLeftShiftEdgeCases(t *testing.T) {
 }
 
 func TestRightShiftEdgeCases(t *testing.T) {
-	bits := NewBits(130)
+	bits, err := NewBits(256)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
 	bits.SetBit(1)
 	bits.RightShift(2)
 	if bits.IsBitSet(0) || bits.IsBitSet(1) {
@@ -142,17 +172,25 @@ func TestRightShiftEdgeCases(t *testing.T) {
 }
 
 func TestSetAndClearOutOfRange(t *testing.T) {
-	bits := NewBits(130)
-	bits.SetBit(130)
-	if bits.IsBitSet(130) {
-		t.Errorf("Expected bit 130 to be out of range and not set")
+	bits, err := NewBits(256)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
 	}
-	bits.ClearBit(130)
+
+	bits.SetBit(300)
+	if bits.IsBitSet(300) {
+		t.Errorf("Expected bit 300 to be out of range and not set")
+	}
+	bits.ClearBit(300)
 	// No need to check this, as ClearBit does nothing out of range
 }
 
 func TestRightShiftBeyondSize(t *testing.T) {
-	bits := NewBits(130)
+	bits, err := NewBits(256)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
 	bits.SetBit(129)
 	bits.RightShift(130)
 	if bits.CountOnes() != 0 {
@@ -161,16 +199,24 @@ func TestRightShiftBeyondSize(t *testing.T) {
 }
 
 func TestLeftShiftBeyondSize(t *testing.T) {
-	bits := NewBits(130)
+	bits, err := NewBits(256)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
 	bits.SetBit(0)
-	bits.LeftShift(130)
+	bits.LeftShift(256)
 	if bits.CountOnes() != 0 {
 		t.Errorf("Expected all bits to be clear after left shift beyond size")
 	}
 }
 
 func TestLeftShiftFull(t *testing.T) {
-	bits := NewBits(2560)
+	bits, err := NewBits(2560)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
 	for i := 0; i < 2560; i++ {
 		bits.SetBit(i)
 	}
@@ -192,7 +238,11 @@ func TestLeftShiftFull(t *testing.T) {
 }
 
 func TestRightShiftFull(t *testing.T) {
-	bits := NewBits(2560)
+	bits, err := NewBits(2560)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
 	for i := 0; i < 2560; i++ {
 		bits.SetBit(i)
 	}
