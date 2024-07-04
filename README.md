@@ -40,6 +40,7 @@ Experimental packages not in std and golang.org/exp
     - **AccessOrderedMap**: an access-order map.
     - **BidiMap**: a bidirectional map. 
   - **Tuple**: a collection of generic tuples.
+  - **bits**: a bitset implementation
 
 - **chanx**
   - **Batch**: batch get from channels efficiently
