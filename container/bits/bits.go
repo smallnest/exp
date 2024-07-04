@@ -68,8 +68,24 @@ func (b *Bits) LeftShift(n int) {
 	if n == 0 {
 		return
 	}
+
+	// if n is greater than or equal to the size of the bitset, set all bits to 0.
+	if n >= b.size {
+		for i := 0; i < len(b.data); i++ {
+			b.data[i] = 0
+		}
+		return
+	}
+
+	b.slowLeftShift(n)
+}
+
+func (b *Bits) slowLeftShift(n int) {
+	// calculate the number of elements and bits to shift.
 	shiftElements := n / 64
+	// the number of bits to shift is the remainder of n divided by 64.
 	shiftBits := n % 64
+
 	for i := len(b.data) - 1; i >= shiftElements; i-- {
 		b.data[i] = b.data[i-shiftElements] << shiftBits
 		if i > shiftElements && shiftBits != 0 {
@@ -89,7 +105,22 @@ func (b *Bits) RightShift(n int) {
 	if n == 0 {
 		return
 	}
+
+	// if n is greater than or equal to the size of the bitset, set all bits to 0.
+	if n >= b.size {
+		for i := 0; i < len(b.data); i++ {
+			b.data[i] = 0
+		}
+		return
+	}
+
+	b.slowRightShift(n)
+}
+
+func (b *Bits) slowRightShift(n int) {
+	// calculate the number of elements and bits to shift.
 	shiftElements := n / 64
+	// the number of bits to shift is the remainder of n divided by 64.
 	shiftBits := n % 64
 	for i := 0; i < len(b.data)-shiftElements; i++ {
 		b.data[i] = b.data[i+shiftElements] >> shiftBits

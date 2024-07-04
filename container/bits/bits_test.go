@@ -168,3 +168,47 @@ func TestLeftShiftBeyondSize(t *testing.T) {
 		t.Errorf("Expected all bits to be clear after left shift beyond size")
 	}
 }
+
+func TestLeftShiftFull(t *testing.T) {
+	bits := NewBits(2560)
+	for i := 0; i < 2560; i++ {
+		bits.SetBit(i)
+	}
+	n := bits.CountOnes()
+	if n != 2560 {
+		t.Errorf("Expected all bits to be set, got %d", n)
+	}
+
+	for i := 0; i < 3000; i++ {
+		bits.LeftShift(1)
+		if bits.CountOnes() != n-1 {
+			t.Errorf("Expected %d bits to be set, got %d", n-1, bits.CountOnes())
+		}
+		if i < 2559 {
+			n--
+		}
+
+	}
+}
+
+func TestRightShiftFull(t *testing.T) {
+	bits := NewBits(2560)
+	for i := 0; i < 2560; i++ {
+		bits.SetBit(i)
+	}
+	n := bits.CountOnes()
+	if n != 2560 {
+		t.Errorf("Expected all bits to be set, got %d", n)
+	}
+
+	for i := 0; i < 3000; i++ {
+		bits.RightShift(1)
+		if bits.CountOnes() != n-1 {
+			t.Errorf("Expected %d bits to be set, got %d", n-1, bits.CountOnes())
+		}
+		if i < 2559 {
+			n--
+		}
+
+	}
+}
