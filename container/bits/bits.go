@@ -34,7 +34,7 @@ func isPowerOfTwo(n int) bool {
 	if n <= 0 {
 		return false
 	}
-	return (n&(n-1)) == 0 || n%64 == 0
+	return (n & (n - 1)) == 0
 }
 
 // SetBit sets the bit at the given position to 1.
