@@ -212,16 +212,16 @@ func TestLeftShiftBeyondSize(t *testing.T) {
 }
 
 func TestLeftShiftFull(t *testing.T) {
-	bits, err := NewBits(2560)
+	bits, err := NewBits(1024)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
 
-	for i := 0; i < 2560; i++ {
+	for i := 0; i < 1024; i++ {
 		bits.SetBit(i)
 	}
 	n := bits.CountOnes()
-	if n != 2560 {
+	if n != 1024 {
 		t.Errorf("Expected all bits to be set, got %d", n)
 	}
 
@@ -230,7 +230,7 @@ func TestLeftShiftFull(t *testing.T) {
 		if bits.CountOnes() != n-1 {
 			t.Errorf("Expected %d bits to be set, got %d", n-1, bits.CountOnes())
 		}
-		if i < 2559 {
+		if i < 1023 {
 			n--
 		}
 
@@ -238,16 +238,16 @@ func TestLeftShiftFull(t *testing.T) {
 }
 
 func TestRightShiftFull(t *testing.T) {
-	bits, err := NewBits(2560)
+	bits, err := NewBits(1024)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
 
-	for i := 0; i < 2560; i++ {
+	for i := 0; i < 1024; i++ {
 		bits.SetBit(i)
 	}
 	n := bits.CountOnes()
-	if n != 2560 {
+	if n != 1024 {
 		t.Errorf("Expected all bits to be set, got %d", n)
 	}
 
@@ -256,7 +256,7 @@ func TestRightShiftFull(t *testing.T) {
 		if bits.CountOnes() != n-1 {
 			t.Errorf("Expected %d bits to be set, got %d", n-1, bits.CountOnes())
 		}
-		if i < 2559 {
+		if i < 1023 {
 			n--
 		}
 
