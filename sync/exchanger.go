@@ -3,7 +3,7 @@ package sync
 import (
 	"sync/atomic"
 
-	"github.com/smallnest/goroutine"
+	"github.com/smallnest/gid"
 )
 
 // Exchanger is a synchronization primitive that allows two goroutines to
@@ -39,7 +39,7 @@ func NewExchanger[T any]() *Exchanger[T] {
 //
 // If the other goroutine has not called Exchange yet, it blocks.
 func (e *Exchanger[T]) Exchange(value T) T {
-	goid := goroutine.ID()
+	goid := gid.ID()
 
 	// left goroutine
 	isLeft := atomic.CompareAndSwapInt64(&e.leftGoID, -1, goid)

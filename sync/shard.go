@@ -3,7 +3,7 @@ package sync
 import (
 	"runtime"
 
-	"github.com/smallnest/goroutine"
+	"github.com/smallnest/gid"
 	"golang.org/x/sys/cpu"
 )
 
@@ -34,7 +34,7 @@ func (s *Shard[T]) Get() *T {
 		panic("sync: Sharded is empty and has not been initialized")
 	}
 
-	return &s.values[int(goroutine.PID())%len(s.values)].v
+	return &s.values[int(gid.PID())%len(s.values)].v
 }
 
 // Range calls f for all data of type T in Shard.

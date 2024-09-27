@@ -17,8 +17,8 @@ github.com/mattn/go-sqlite3 v1.14.22 h1:2gZY6PC6kBnID23Tichd1K+Z0oS6nE/XwU+Vz/5o
 github.com/mattn/go-sqlite3 v1.14.22/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/smallnest/goroutine v1.1.1 h1:nSPBDeFNUjgukcT2Ue10G9sKQiQl8xLOMtgV92HjgCQ=
-github.com/smallnest/goroutine v1.1.1/go.mod h1:Fp8f6ZReubfdj0m4+NcUnW4IsAqKa+Pnrv9opEiD43E=
+github.com/smallnest/gid v1.2.0 h1:/s/SJU8q2JRb/Pwq8smRS1iYzmmYOaaXeTnjpNejo9A=
+github.com/smallnest/gid v1.2.0/go.mod h1:xp2lHqE0ny+OFl9pFhBba1e1Uo7qVs776cnv33XCjts=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcUk=
