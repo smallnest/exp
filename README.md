@@ -54,3 +54,6 @@ Experimental packages not in std and golang.org/exp
 
 - **stat**
   - `Hist` provides a Histogram.
+
+- **ebpf**
+  - **AttachUretprobe**: a helper function to add Uretprobe in Go programs to avoid crash
