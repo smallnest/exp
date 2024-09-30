@@ -32,18 +32,6 @@ import (
 	"github.com/cilium/ebpf/link"
 )
 
-func exPath(obj interface{}) (string, bool) {
-	rv := reflect.ValueOf(obj)
-	if rv.Kind() == reflect.Ptr {
-		rv = rv.Elem()
-	}
-	fv := rv.FieldByName("path")
-	if !fv.IsValid() {
-		return "", false // 字段不存在
-	}
-	return fv.Interface().(string), true
-}
-
 // AttachUretprobe attaches a uretprobe to the function at attachPath and attachSymbol.
 // The probe will be attached to all return instructions in the function.
 //
@@ -57,10 +45,7 @@ func AttachUretprobe(attachSymbol string, prog *ebpf.Program, ex *link.Executabl
 		return nil, errors.New("executable cannot be nil")
 	}
 
-	attachPath, ok := exPath(ex)
-	if !ok {
-		return nil, errors.New("executable path not found")
-	}
+	attachPath := reflect.ValueOf(ex).FieldByName("path").String()
 
 	funcs, err := getFunctions(attachPath, map[string]struct{}{attachSymbol: {}})
 	if err != nil {
