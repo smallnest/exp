@@ -45,7 +45,7 @@ func AttachUretprobe(attachSymbol string, prog *ebpf.Program, ex *link.Executabl
 		return nil, errors.New("executable cannot be nil")
 	}
 
-	attachPath := reflect.ValueOf(ex).Elem().FieldByName("path").Elem().String()
+	attachPath := reflect.ValueOf(ex).Elem().FieldByName("path").String()
 
 	funcs, err := getFunctions(attachPath, map[string]struct{}{attachSymbol: {}})
 	if err != nil {
