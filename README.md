@@ -57,3 +57,7 @@ Experimental packages not in std and golang.org/exp
 
 - **ebpf**
   - **AttachUretprobe**: a helper function to add Uretprobe in Go programs to avoid crash
+
+- internal data structure in go std libs
+  - `PoolDequeue`: a lock-free, fixed-size single-producer, multi-consumer queue
+  - `PoolChain`: a lock-free, dynamically-sized single-producer, multi-consumer queue
