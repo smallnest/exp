@@ -84,7 +84,7 @@ func (d *PoolDequeue) pack(head, tail uint32) uint64 {
 		uint64(tail&mask)
 }
 
-// pushHead adds val at the head of the queue. It returns false if the
+// PushHead adds val at the head of the queue. It returns false if the
 // queue is full. It must only be called by a single producer.
 func (d *PoolDequeue) PushHead(val any) bool {
 	ptrs := d.headTail.Load()
@@ -115,7 +115,7 @@ func (d *PoolDequeue) PushHead(val any) bool {
 	return true
 }
 
-// popHead removes and returns the element at the head of the queue.
+// PopHead removes and returns the element at the head of the queue.
 // It returns false if the queue is empty. It must only be called by a
 // single producer.
 func (d *PoolDequeue) PopHead() (any, bool) {
@@ -150,7 +150,7 @@ func (d *PoolDequeue) PopHead() (any, bool) {
 	return val, true
 }
 
-// popTail removes and returns the element at the tail of the queue.
+// PopTail removes and returns the element at the tail of the queue.
 // It returns false if the queue is empty. It may be called by any
 // number of consumers.
 func (d *PoolDequeue) PopTail() (any, bool) {
@@ -203,11 +203,11 @@ func (d *PoolDequeue) PopTail() (any, bool) {
 type PoolChain struct {
 	// head is the PoolDequeue to push to. This is only accessed
 	// by the producer, so doesn't need to be synchronized.
-	head *PoolChainElt
+	head *poolChainElt
 
 	// tail is the PoolDequeue to popTail from. This is accessed
 	// by consumers, so reads and writes must be atomic.
-	tail atomic.Pointer[PoolChainElt]
+	tail atomic.Pointer[poolChainElt]
 }
 
 // NewPoolChain returns a new PoolChain.
@@ -215,7 +215,7 @@ func NewPoolChain() *PoolChain {
 	return &PoolChain{}
 }
 
-type PoolChainElt struct {
+type poolChainElt struct {
 	PoolDequeue
 
 	// next and prev link to the adjacent PoolChainElts in this
@@ -228,15 +228,17 @@ type PoolChainElt struct {
 	// prev is written atomically by the consumer and read
 	// atomically by the producer. It only transitions from
 	// non-nil to nil.
-	next, prev atomic.Pointer[PoolChainElt]
+	next, prev atomic.Pointer[poolChainElt]
 }
 
+// PushHead adds val at the head of the queue. It returns false if the
+// queue is full. It must only be called by a single producer.
 func (c *PoolChain) PushHead(val any) bool {
 	d := c.head
 	if d == nil {
 		// Initialize the chain.
 		const initSize = 8 // Must be a power of 2
-		d = new(PoolChainElt)
+		d = new(poolChainElt)
 		d.vals = make([]eface, initSize)
 		c.head = d
 		c.tail.Store(d)
@@ -254,7 +256,7 @@ func (c *PoolChain) PushHead(val any) bool {
 		newSize = dequeueLimit
 	}
 
-	d2 := &PoolChainElt{}
+	d2 := &poolChainElt{}
 	d2.prev.Store(d)
 	d2.vals = make([]eface, newSize)
 	c.head = d2
@@ -262,6 +264,9 @@ func (c *PoolChain) PushHead(val any) bool {
 	return d2.PushHead(val)
 }
 
+// popHead removes and returns the element at the head of the queue.
+// It returns false if the queue is empty. It must only be called by a
+// single producer.
 func (c *PoolChain) PopHead() (any, bool) {
 	d := c.head
 	for d != nil {
@@ -275,6 +280,9 @@ func (c *PoolChain) PopHead() (any, bool) {
 	return nil, false
 }
 
+// PopTail removes and returns the element at the tail of the queue.
+// It returns false if the queue is empty. It may be called by any
+// number of consumers.
 func (c *PoolChain) PopTail() (any, bool) {
 	d := c.tail.Load()
 	if d == nil {
