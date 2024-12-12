@@ -141,8 +141,7 @@ func (ms *MockStmt) Exec(args []driver.Value) (driver.Result, error) {
 	defer ms.mockDB.mu.Unlock()
 
 	for i, expected := range ms.mockDB.expected {
-		if expected.query == ms.query && matchArgs(expected.args, args) {
-			// 移除已匹配的期望
+		if CompareSQL(expected.query, ms.query) && matchArgs(expected.args, args) {
 			ms.mockDB.expected = append(ms.mockDB.expected[:i], ms.mockDB.expected[i+1:]...)
 
 			if expected.err != nil {
@@ -161,15 +160,13 @@ func (ms *MockStmt) Query(args []driver.Value) (driver.Rows, error) {
 	defer ms.mockDB.mu.Unlock()
 
 	for i, expected := range ms.mockDB.expected {
-		if expected.query == ms.query && matchArgs(expected.args, args) {
-			// 移除已匹配的期望
+		if CompareSQL(expected.query, ms.query) && matchArgs(expected.args, args) {
 			ms.mockDB.expected = append(ms.mockDB.expected[:i], ms.mockDB.expected[i+1:]...)
 
 			if expected.err != nil {
 				return nil, expected.err
 			}
 
-			fmt.Println("rows:", expected.rows)
 			return &MockRows{columns: expected.columns, rows: expected.rows}, nil
 		}
 	}
