@@ -7,6 +7,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"sync"
 )
 
@@ -23,6 +24,7 @@ var (
 // ExpectedQuery 表示一个预期的查询
 type ExpectedQuery struct {
 	query   string
+	matcher *regexp.Regexp
 	args    []driver.Value
 	rows    [][]driver.Value
 	columns []string
@@ -50,6 +52,19 @@ func (m *MockDB) ExpectQuery(query string, args ...driver.Value) *ExpectedQuery 
 	eq := &ExpectedQuery{
 		query: query,
 		args:  args,
+	}
+	m.expected = append(m.expected, eq)
+	return eq
+}
+
+// ExpectQuery 期望一个特定的查询
+func (m *MockDB) Macth(matcher string, args ...driver.Value) *ExpectedQuery {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	eq := &ExpectedQuery{
+		args:    args,
+		matcher: regexp.MustCompile(matcher),
 	}
 	m.expected = append(m.expected, eq)
 	return eq
@@ -141,6 +156,16 @@ func (ms *MockStmt) Exec(args []driver.Value) (driver.Result, error) {
 	defer ms.mockDB.mu.Unlock()
 
 	for i, expected := range ms.mockDB.expected {
+		if expected.matcher != nil && expected.matcher.MatchString(ms.query) && matchArgs(ms.mockDB.expected[i].args, args) {
+			ms.mockDB.expected = append(ms.mockDB.expected[:i], ms.mockDB.expected[i+1:]...)
+
+			if expected.err != nil {
+				return nil, expected.err
+			}
+
+			return &MockResult{}, nil
+		}
+
 		if CompareSQL(expected.query, ms.query) && matchArgs(expected.args, args) {
 			ms.mockDB.expected = append(ms.mockDB.expected[:i], ms.mockDB.expected[i+1:]...)
 
@@ -160,6 +185,16 @@ func (ms *MockStmt) Query(args []driver.Value) (driver.Rows, error) {
 	defer ms.mockDB.mu.Unlock()
 
 	for i, expected := range ms.mockDB.expected {
+		if expected.matcher != nil && expected.matcher.MatchString(ms.query) && matchArgs(ms.mockDB.expected[i].args, args) {
+			ms.mockDB.expected = append(ms.mockDB.expected[:i], ms.mockDB.expected[i+1:]...)
+
+			if expected.err != nil {
+				return nil, expected.err
+			}
+
+			return &MockRows{columns: expected.columns, rows: expected.rows}, nil
+		}
+
 		if CompareSQL(expected.query, ms.query) && matchArgs(expected.args, args) {
 			ms.mockDB.expected = append(ms.mockDB.expected[:i], ms.mockDB.expected[i+1:]...)
 

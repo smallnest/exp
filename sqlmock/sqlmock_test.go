@@ -213,3 +213,64 @@ func TestMultipleQueries(t *testing.T) {
 		t.Errorf("unexpected user: %+v", user2)
 	}
 }
+func TestMockDB_Match(t *testing.T) {
+	// 1. 创建 mock 数据库
+	mockDB := sqlmock.NewMock()
+
+	// 2. 期望一个匹配查询并设置返回值
+	pattern := `^SELECT\s+[a-zA-Z0-9_,\s]+FROM\s+[a-zA-Z0-9_]+\s+WHERE\s+[a-zA-Z0-9_]+\s*=\s*\?$`
+
+	mockDB.Macth(pattern).
+		WithArgs("Alice").
+		WillReturnRows([]string{"id", "name", "age"}, [][]driver.Value{
+			{2, "Alice", 25},
+		})
+
+	// 3. 打开数据库连接
+	db, err := mockDB.Open("mock")
+	if err != nil {
+		t.Fatalf("failed to open database: %v", err)
+	}
+
+	// 4. 创建仓库实例
+	repo := &UserRepository{db: db}
+
+	// 5. 执行测试
+	var user User
+	err = repo.db.QueryRow("SELECT id, name, age FROM users WHERE name = ?", "Alice").Scan(&user.ID, &user.Name, &user.Age)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// 6. 验证结果
+	if user.ID != 2 || user.Name != "Alice" || user.Age != 25 {
+		t.Errorf("unexpected user: %+v", user)
+	}
+}
+
+func TestMockDB_Match_NoMatch(t *testing.T) {
+	// 1. 创建 mock 数据库
+	mockDB := sqlmock.NewMock()
+
+	// 2. 期望一个匹配查询并设置返回值
+	mockDB.Macth("SELECT id, name, age FROM users WHERE name = ?", "Alice").
+		WillReturnRows([]string{"id", "name", "age"}, [][]driver.Value{
+			{2, "Alice", 25},
+		})
+
+	// 3. 打开数据库连接
+	db, err := mockDB.Open("mock")
+	if err != nil {
+		t.Fatalf("failed to open database: %v", err)
+	}
+
+	// 4. 创建仓库实例
+	repo := &UserRepository{db: db}
+
+	// 5. 执行测试
+	var user User
+	err = repo.db.QueryRow("SELECT id, name, age FROM users WHERE name = ?", "Bob").Scan(&user.ID, &user.Name, &user.Age)
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+}
