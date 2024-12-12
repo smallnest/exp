@@ -112,3 +112,104 @@ func TestQueryError(t *testing.T) {
 		t.Errorf("expected ErrNoRows, got %v", err)
 	}
 }
+
+func TestGetMultipleUsers(t *testing.T) {
+	// 1. 创建 mock 数据库
+	mockDB := sqlmock.NewMock()
+
+	// 2. 期望一个查询并设置返回值
+	mockDB.ExpectQuery("SELECT id, name, age FROM users").
+		WillReturnRows([]string{"id", "name", "age"}, [][]driver.Value{
+			{1, "John Doe", 30},
+			{2, "Alice", 25},
+		})
+
+	// 3. 打开数据库连接
+	db, err := mockDB.Open("mock")
+	if err != nil {
+		t.Fatalf("failed to open database: %v", err)
+	}
+
+	// 4. 创建仓库实例
+	repo := &UserRepository{db: db}
+
+	// 5. 执行测试
+	rows, err := repo.db.Query("SELECT id, name, age FROM users")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	defer rows.Close()
+
+	var users []User
+	for rows.Next() {
+		var user User
+		if err := rows.Scan(&user.ID, &user.Name, &user.Age); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		users = append(users, user)
+	}
+
+	// 6. 验证结果
+	if len(users) != 2 {
+		t.Errorf("expected 2 users, got %d", len(users))
+	}
+
+	expectedUsers := []User{
+		{ID: 1, Name: "John Doe", Age: 30},
+		{ID: 2, Name: "Alice", Age: 25},
+	}
+
+	for i, user := range users {
+		if user != expectedUsers[i] {
+			t.Errorf("unexpected user at index %d: %+v", i, user)
+		}
+	}
+}
+
+func TestMultipleQueries(t *testing.T) {
+	// 1. 创建 mock 数据库
+	mockDB := sqlmock.NewMock()
+
+	// 2. 期望多个查询并设置返回值
+	mockDB.ExpectQuery("SELECT id, name, age FROM users WHERE id = ?").
+		WithArgs(1).
+		WillReturnRows([]string{"id", "name", "age"}, [][]driver.Value{
+			{1, "John Doe", 30},
+		})
+
+	mockDB.ExpectQuery("SELECT id, name FROM users WHERE name = ?").
+		WithArgs("Alice").
+		WillReturnRows([]string{"id", "name"}, [][]driver.Value{
+			{2, "Alice"},
+		})
+
+	// 3. 打开数据库连接
+	db, err := mockDB.Open("mock")
+	if err != nil {
+		t.Fatalf("failed to open database: %v", err)
+	}
+
+	// 4. 创建仓库实例
+	repo := &UserRepository{db: db}
+
+	// 5. 执行测试
+	user1, err := repo.GetUserByID(1)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	var user2 User
+	err = repo.db.QueryRow("SELECT id, name FROM users WHERE name = ?", "Alice").Scan(&user2.ID, &user2.Name)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// 6. 验证结果
+	if user1.ID != 1 || user1.Name != "John Doe" || user1.Age != 30 {
+		t.Errorf("unexpected user: %+v", user1)
+	}
+
+	if user2.ID != 2 || user2.Name != "Alice" {
+		t.Errorf("unexpected user: %+v", user2)
+	}
+}
