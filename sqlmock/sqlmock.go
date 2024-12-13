@@ -29,6 +29,8 @@ type ExpectedQuery struct {
 	rows    [][]driver.Value
 	columns []string
 	err     error
+
+	CallCount int
 }
 
 // MockDB simulates a database connection
@@ -157,7 +159,8 @@ func (ms *MockStmt) Exec(args []driver.Value) (driver.Result, error) {
 
 	for i, expected := range ms.mockDB.expected {
 		if expected.matcher != nil && expected.matcher.MatchString(ms.query) && matchArgs(ms.mockDB.expected[i].args, args) {
-			ms.mockDB.expected = append(ms.mockDB.expected[:i], ms.mockDB.expected[i+1:]...)
+			// ms.mockDB.expected = append(ms.mockDB.expected[:i], ms.mockDB.expected[i+1:]...)
+			expected.CallCount++
 
 			if expected.err != nil {
 				return nil, expected.err
@@ -167,7 +170,8 @@ func (ms *MockStmt) Exec(args []driver.Value) (driver.Result, error) {
 		}
 
 		if CompareSQL(expected.query, ms.query) && matchArgs(expected.args, args) {
-			ms.mockDB.expected = append(ms.mockDB.expected[:i], ms.mockDB.expected[i+1:]...)
+			// ms.mockDB.expected = append(ms.mockDB.expected[:i], ms.mockDB.expected[i+1:]...)
+			expected.CallCount++
 
 			if expected.err != nil {
 				return nil, expected.err
@@ -186,7 +190,8 @@ func (ms *MockStmt) Query(args []driver.Value) (driver.Rows, error) {
 
 	for i, expected := range ms.mockDB.expected {
 		if expected.matcher != nil && expected.matcher.MatchString(ms.query) && matchArgs(ms.mockDB.expected[i].args, args) {
-			ms.mockDB.expected = append(ms.mockDB.expected[:i], ms.mockDB.expected[i+1:]...)
+			// ms.mockDB.expected = append(ms.mockDB.expected[:i], ms.mockDB.expected[i+1:]...)
+			expected.CallCount++
 
 			if expected.err != nil {
 				return nil, expected.err
@@ -196,7 +201,8 @@ func (ms *MockStmt) Query(args []driver.Value) (driver.Rows, error) {
 		}
 
 		if CompareSQL(expected.query, ms.query) && matchArgs(expected.args, args) {
-			ms.mockDB.expected = append(ms.mockDB.expected[:i], ms.mockDB.expected[i+1:]...)
+			// ms.mockDB.expected = append(ms.mockDB.expected[:i], ms.mockDB.expected[i+1:]...)
+			expected.CallCount++
 
 			if expected.err != nil {
 				return nil, expected.err
