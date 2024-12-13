@@ -21,7 +21,7 @@ var (
 	_ driver.Tx        = &MockTx{}
 )
 
-// ExpectedQuery 表示一个预期的查询
+// ExpectedQuery represents an expected query
 type ExpectedQuery struct {
 	query   string
 	matcher *regexp.Regexp
@@ -31,20 +31,20 @@ type ExpectedQuery struct {
 	err     error
 }
 
-// MockDB 模拟数据库连接
+// MockDB simulates a database connection
 type MockDB struct {
 	mu       sync.Mutex
 	expected []*ExpectedQuery
 }
 
-// NewMock 创建一个新的模拟数据库
+// NewMock creates a new mock database
 func NewMock() *MockDB {
 	return &MockDB{
 		expected: []*ExpectedQuery{},
 	}
 }
 
-// ExpectQuery 期望一个特定的查询
+// ExpectQuery expects a specific query
 func (m *MockDB) ExpectQuery(query string, args ...driver.Value) *ExpectedQuery {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -57,8 +57,8 @@ func (m *MockDB) ExpectQuery(query string, args ...driver.Value) *ExpectedQuery 
 	return eq
 }
 
-// ExpectQuery 期望一个特定的查询
-func (m *MockDB) Macth(matcher string, args ...driver.Value) *ExpectedQuery {
+// Match expects a specific query with a matcher
+func (m *MockDB) Match(matcher string, args ...driver.Value) *ExpectedQuery {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -75,27 +75,27 @@ func (eq *ExpectedQuery) WithArgs(args ...driver.Value) *ExpectedQuery {
 	return eq
 }
 
-// WillReturnRows 为查询设置返回的行数据
+// WillReturnRows sets the rows to be returned for the query
 func (eq *ExpectedQuery) WillReturnRows(columns []string, rows [][]driver.Value) *ExpectedQuery {
 	eq.rows = rows
 	eq.columns = columns
 	return eq
 }
 
-// WillReturnError 为查询设置返回的错误
+// WillReturnError sets the error to be returned for the query
 func (eq *ExpectedQuery) WillReturnError(columns []string, err error) *ExpectedQuery {
 	eq.err = err
 	eq.columns = columns
 	return eq
 }
 
-// Open 模拟数据库连接
+// Open simulates a database connection
 func (m *MockDB) Open(driverName string) (*sql.DB, error) {
 	connector := &MockConnector{mockDB: m}
 	return sql.OpenDB(connector), nil
 }
 
-// MockConnector 实现 driver.Connector 接口
+// MockConnector implements the driver.Connector interface
 type MockConnector struct {
 	mockDB *MockDB
 }
@@ -108,7 +108,7 @@ func (mc *MockConnector) Driver() driver.Driver {
 	return &MockDriver{mockDB: mc.mockDB}
 }
 
-// MockDriver 实现 driver.Driver 接口
+// MockDriver implements the driver.Driver interface
 type MockDriver struct {
 	mockDB *MockDB
 }
@@ -117,7 +117,7 @@ func (md *MockDriver) Open(name string) (driver.Conn, error) {
 	return &MockConn{mockDB: md.mockDB}, nil
 }
 
-// MockConn 实现 driver.Conn 接口
+// MockConn implements the driver.Conn interface
 type MockConn struct {
 	mockDB *MockDB
 }
@@ -137,7 +137,7 @@ func (mc *MockConn) Begin() (driver.Tx, error) {
 	return &MockTx{}, nil
 }
 
-// MockStmt 实现 driver.Stmt 接口
+// MockStmt implements the driver.Stmt interface
 type MockStmt struct {
 	mockDB *MockDB
 	query  string
@@ -209,7 +209,7 @@ func (ms *MockStmt) Query(args []driver.Value) (driver.Rows, error) {
 	return nil, fmt.Errorf("unexpected query: %s", ms.query)
 }
 
-// MockResult 实现 driver.Result 接口
+// MockResult implements the driver.Result interface
 type MockResult struct{}
 
 func (mr *MockResult) LastInsertId() (int64, error) {
@@ -220,7 +220,7 @@ func (mr *MockResult) RowsAffected() (int64, error) {
 	return 0, nil
 }
 
-// MockRows 实现 driver.Rows 接口
+// MockRows implements the driver.Rows interface
 type MockRows struct {
 	rows    [][]driver.Value
 	columns []string
@@ -245,7 +245,7 @@ func (mr *MockRows) Next(dest []driver.Value) error {
 	return nil
 }
 
-// MockTx 实现 driver.Tx 接口
+// MockTx implements the driver.Tx interface
 type MockTx struct{}
 
 func (mt *MockTx) Commit() error {
@@ -256,7 +256,7 @@ func (mt *MockTx) Rollback() error {
 	return nil
 }
 
-// 辅助函数：匹配查询参数
+// Helper function: match query arguments
 func matchArgs(expected, actual []driver.Value) bool {
 	if len(expected) != len(actual) {
 		return false

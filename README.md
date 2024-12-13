@@ -61,3 +61,7 @@ Experimental packages not in std and golang.org/exp
 - internal data structure in go std libs
   - `PoolDequeue`: a lock-free, fixed-size single-producer, multi-consumer queue
   - `PoolChain`: a lock-free, dynamically-sized single-producer, multi-consumer queue
+
+- mock
+  - `sqlmock`: a simple sql mock
+  - `kafkamock`: kafka mock

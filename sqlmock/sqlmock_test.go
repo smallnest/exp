@@ -220,7 +220,7 @@ func TestMockDB_Match(t *testing.T) {
 	// 2. 期望一个匹配查询并设置返回值
 	pattern := `^SELECT\s+[a-zA-Z0-9_,\s]+FROM\s+[a-zA-Z0-9_]+\s+WHERE\s+[a-zA-Z0-9_]+\s*=\s*\?$`
 
-	mockDB.Macth(pattern).
+	mockDB.Match(pattern).
 		WithArgs("Alice").
 		WillReturnRows([]string{"id", "name", "age"}, [][]driver.Value{
 			{2, "Alice", 25},
@@ -253,7 +253,7 @@ func TestMockDB_Match_NoMatch(t *testing.T) {
 	mockDB := sqlmock.NewMock()
 
 	// 2. 期望一个匹配查询并设置返回值
-	mockDB.Macth("SELECT id, name, age FROM users WHERE name = ?", "Alice").
+	mockDB.Match("SELECT id, name, age FROM users WHERE name = ?", "Alice").
 		WillReturnRows([]string{"id", "name", "age"}, [][]driver.Value{
 			{2, "Alice", 25},
 		})
