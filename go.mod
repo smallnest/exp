@@ -10,18 +10,18 @@ require (
 	github.com/mailru/easyjson v0.7.7
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/segmentio/kafka-go v0.4.47
-	github.com/smallnest/gid v1.2.0
+	github.com/smallnest/gid v1.3.0
 	github.com/stretchr/testify v1.8.4
-	golang.org/x/arch v0.10.0
-	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1
-	golang.org/x/sys v0.20.0
+	golang.org/x/arch v0.12.0
+	golang.org/x/exp v0.0.0-20241210194714-1829a127f884
+	golang.org/x/sys v0.28.0
 )
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/hashicorp/errwrap v1.0.0 // indirect
-	github.com/klauspost/compress v1.15.9 // indirect
-	github.com/pierrec/lz4/v4 v4.1.15 // indirect
+	github.com/hashicorp/errwrap v1.1.0 // indirect
+	github.com/klauspost/compress v1.17.11 // indirect
+	github.com/pierrec/lz4/v4 v4.1.22 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
