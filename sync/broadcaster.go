@@ -44,3 +44,11 @@ func (b *Broadcaster[T]) Broadcast(v T) {
 
 	b.cond.Broadcast()
 }
+
+func (b *Broadcaster[T]) Reset() {
+	var t T
+	b.cond.L.Lock()
+	b.signaled = false
+	b.v = t
+	b.cond.L.Unlock()
+}
