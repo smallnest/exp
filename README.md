@@ -25,6 +25,7 @@ Experimental packages not in std and golang.org/exp
     - Uint32
     - Uint64
   - **Pool**: a generic pool, forked from https://github.com/mkmik/syncpool
+  - **Broadcaster**: a broadcaster to broadcast message to multiple receivers
 
 - **container**
   - **heap**: generic heap
