@@ -130,3 +130,24 @@ func UpdateTx(ctx context.Context, db *sql.DB, query string, args ...any) (int64
 
 	return result.RowsAffected()
 }
+
+// Tx is a helper function that wraps sql exec to run in a transaction.
+func Tx(ctx context.Context, db *sql.DB, fn func(db *sql.DB, ctx context.Context) error) error {
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	err = fn(db, ctx)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

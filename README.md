@@ -50,8 +50,7 @@ Experimental packages not in std and golang.org/exp
   - MmapReader: a mmap reader which implements io.Reader, io.ReadAt, io.Closer and can ReadLine
 
 - **db**
-  - `Rows` and `Row` provides two helper functions to query structs from databases.
-  - `RowsMap` and `RowMap` provides two helper functions to query map from databases.
+  a group of sql helper functions.
 
 - **stat**
   - `Hist` provides a Histogram.
