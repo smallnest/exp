@@ -62,35 +62,36 @@ func TestRow(t *testing.T) {
 	name, err := Row[string](context.Background(), db, "SELECT name FROM persons order by id limit 1")
 	assert.NoError(t, err)
 	assert.Equal(t, "brett", name)
-}
 
-func TestRowsMap(t *testing.T) {
-	db := exampleDB(t)
-
-	persons, err := RowsMap(context.Background(), db, "SELECT * FROM persons order by id")
-	assert.NoError(t, err)
-	require.Equal(t, 2, len(persons))
-	assert.Equal(t, int64(1), persons[0]["id"])
-	assert.Equal(t, "brett", persons[0]["name"])
-	assert.Equal(t, int64(2), persons[1]["id"])
-	assert.Equal(t, "fred", persons[1]["name"])
-
-	names, err := RowsMap(context.Background(), db, "SELECT name FROM persons order by id")
-	assert.NoError(t, err)
-	assert.Equal(t, 2, len(names))
-	assert.Equal(t, "brett", names[0]["name"])
-	assert.Equal(t, "fred", names[1]["name"])
-}
-
-func TestRowMap(t *testing.T) {
-	db := exampleDB(t)
-
-	person, err := RowMap(context.Background(), db, "SELECT * FROM persons order by id limit 1")
-	assert.NoError(t, err)
-	assert.Equal(t, int64(1), person["id"])
-	assert.Equal(t, "brett", person["name"])
-
-	name, err := Row[string](context.Background(), db, "SELECT name FROM persons order by id limit 1")
+	name, err = Row[string](context.Background(), db, "SELECT name FROM persons order by id")
 	assert.NoError(t, err)
 	assert.Equal(t, "brett", name)
+}
+
+func TestInsert(t *testing.T) {
+	db := exampleDB(t)
+
+	query := "INSERT INTO persons (name) VALUES (?)"
+	id, err := Insert(context.Background(), db, query, "alice")
+	assert.NoError(t, err)
+	assert.NotZero(t, id)
+
+	person, err := Row[person](context.Background(), db, "SELECT * FROM persons WHERE id = ?", id)
+	assert.NoError(t, err)
+	assert.Equal(t, int(id), person.ID)
+	assert.Equal(t, "alice", person.Name)
+}
+
+func TestInsertTx(t *testing.T) {
+	db := exampleDB(t)
+
+	query := "INSERT INTO persons (name) VALUES (?)"
+	id, err := InsertTx(context.Background(), db, query, "charlie")
+	assert.NoError(t, err)
+	assert.NotZero(t, id)
+
+	person, err := Row[person](context.Background(), db, "SELECT * FROM persons WHERE id = ?", id)
+	assert.NoError(t, err)
+	assert.Equal(t, int(id), person.ID)
+	assert.Equal(t, "charlie", person.Name)
 }
