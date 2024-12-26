@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"strings"
 
-	"github.com/blockloop/scan"
+	"github.com/blockloop/scan/v2"
 )
 
 // Rows is a helper function that wraps sql rows to scan into a slice.

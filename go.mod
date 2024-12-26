@@ -3,7 +3,7 @@ module github.com/smallnest/exp
 go 1.23.0
 
 require (
-	github.com/blockloop/scan v1.3.0
+	github.com/blockloop/scan/v2 v2.5.0
 	github.com/buger/jsonparser v1.1.1
 	github.com/cilium/ebpf v0.16.0
 	github.com/hashicorp/go-multierror v1.1.1
@@ -23,5 +23,6 @@ require (
 	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/pierrec/lz4/v4 v4.1.22 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	golang.org/x/text v0.13.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
