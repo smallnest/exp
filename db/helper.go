@@ -59,7 +59,7 @@ func Count(ctx context.Context, db *sql.DB, query string, args ...any) (int64, e
 	return count, nil
 }
 
-// Insert is a helper function that wraps sql rows to scan into a single int64.
+// Insert is a helper function that wraps sql exec to insert a row.
 func Insert(ctx context.Context, db *sql.DB, query string, args ...any) (int64, error) {
 	result, err := db.ExecContext(ctx, query, args...)
 	if err != nil {
@@ -69,7 +69,7 @@ func Insert(ctx context.Context, db *sql.DB, query string, args ...any) (int64, 
 	return result.LastInsertId()
 }
 
-// InsertTx is a helper function that wraps sql rows to scan into a single int64.
+// InsertTx is a helper function that wraps sql exec to insert a row in a transaction.
 func InsertTx(ctx context.Context, db *sql.DB, query string, args ...any) (int64, error) {
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
@@ -88,4 +88,45 @@ func InsertTx(ctx context.Context, db *sql.DB, query string, args ...any) (int64
 	}
 
 	return result.LastInsertId()
+}
+
+// Delete is a helper function that wraps sql exec to delete rows.
+func Delete(ctx context.Context, db *sql.DB, query string, args ...any) (int64, error) {
+	result, err := db.ExecContext(ctx, query, args...)
+	if err != nil {
+		return 0, err
+	}
+
+	return result.RowsAffected()
+}
+
+// Update is a helper function that wraps sql exec to update rows.
+func Update(ctx context.Context, db *sql.DB, query string, args ...any) (int64, error) {
+	result, err := db.ExecContext(ctx, query, args...)
+	if err != nil {
+		return 0, err
+	}
+
+	return result.RowsAffected()
+}
+
+// UpdateTx is a helper function that wraps sql exec to update rows in a transaction.
+func UpdateTx(ctx context.Context, db *sql.DB, query string, args ...any) (int64, error) {
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+
+	result, err := tx.ExecContext(ctx, query, args...)
+	if err != nil {
+		tx.Rollback()
+		return 0, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return 0, err
+	}
+
+	return result.RowsAffected()
 }
